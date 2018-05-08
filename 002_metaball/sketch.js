@@ -80,4 +80,4 @@ var s = function (p) {
 
 };
 
-var p026 = new p5(s);
+var p002 = new p5(s);

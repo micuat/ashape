@@ -79,8 +79,8 @@ void setup() {
 
 
   libPaths.add(sketchPath("event-loop-nashorn.js"));
-  //libPaths.add(sketchPath("../CC_99_ColorPredictor/lib/synaptic.min.js"));
-  scriptPaths.add(sketchPath("../001_metaball/sketch.js"));
+  libPaths.add(sketchPath("../004_ribbons/libraries/synaptic.min.js"));
+  scriptPaths.add(sketchPath("../004_ribbons/sketch.js"));
 
   initNashorn();
 }
