@@ -123,13 +123,15 @@ void main() {
 	float spec = 4.5;
 	float grey = pow(col.x, spec) * 100;
 
+	vec3 red = vec3(1) - texture2D(texture, vec2(0, 0)).rgb;
+	vec3 blue = vec3(1) - texture2D(texture, vec2(1, 1)).rgb;
 	if(grey < 0.3 && grey > 0) {
-		gl_FragColor = vec4(vec3(grey + 0.5, 0, 0),1.0);
+		gl_FragColor = vec4(red * (grey + 0.5),1.0);
 	}
 	else if (grey > 0) {
-		gl_FragColor = vec4(vec3(0, 0, grey),1.0);
+		gl_FragColor = vec4(blue * grey,1.0);
 	}
 	else {
-		gl_FragColor = vec4(vec3(1),1.0);
+		gl_FragColor = vec4(texture2D(texture, fragCoord));
 	}
 }

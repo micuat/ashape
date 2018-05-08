@@ -4,15 +4,45 @@ var shader;
 var pos = [];
 
 var s = function (p) {
+  let nn;
+  let training_data;
 
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
     shader = p.loadShader(p.sketchPath("../004_ribbons/frag.glsl"));
+    nn = new synaptic.Architect.Perceptron(2, 3, 3);
 
     for(let i = 0; i < 4; i++) {
       pos.push(p.createVector(0, 0));
     }
+
+    reset();
+    print(training_data[0])
+  }
+
+  function reset() {
+    training_data = [{
+      inputs: [p.random(0, 0.25), p.random(0, 0.25)],
+      outputs: [p.random(1), p.random(1), p.random(1)]
+    },
+    {
+      inputs: [p.random(0, 0.25), p.random(0.75, 1)],
+      outputs: [p.random(1), p.random(1), p.random(1)]
+    },
+    {
+      inputs: [p.random(0.75, 1), p.random(0, 0.25)],
+      outputs: [p.random(1), p.random(1), p.random(1)]
+    },
+    {
+      inputs: [p.random(0.75, 1), p.random(0, 0.25)],
+      outputs: [p.random(1), p.random(1), p.random(1)]
+    }
+    // {
+    //   inputs: [0.5, 0.5],
+    //   outputs: [p.random(1), p.random(1), p.random(1)]
+    // }
+    ];
   }
 
   let angle = 0;
@@ -25,6 +55,34 @@ var s = function (p) {
     let t = p.millis() * 0.001;
     let tpi = t * p.PI;
     p.background(0);
+
+    if(p.frameCount % 300 == 0) {
+      reset();
+    }
+
+    for (let i = 0; i < 50; i++) {
+      let data = p.random(training_data);
+      // nn.train(data.inputs, data.outputs);
+      nn.activate(data.inputs);
+      nn.propagate(0.9, data.outputs)
+    }
+
+    let resolution = 40;
+    let cols = p.width / resolution;
+    let rows = p.height / resolution;
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        let x1 = i / cols;
+        let x2 = j / rows;
+        let inputs = [x1, x2];
+        // print(inputs)
+        // let y = nn.predict(inputs);
+        let y = nn.activate(inputs);
+        p.noStroke();
+        p.fill(y[0] * 255, y[1] * 255, y[2] * 255);
+        p.rect(i * resolution, j * resolution, resolution, resolution);
+      }
+    }
 
     shader.set("iTime", t);
 
