@@ -17,8 +17,8 @@ var s = function (p) {
 
   let angle = 0;
   p.draw = function () {
-    if (p.frameCount % 120 == 0) {
-      shader = p.loadShader(p.sketchPath("../003_supermetaball/frag.glsl"));
+    if (p.frameCount % 60 == 0) {
+      // shader = p.loadShader(p.sketchPath("../003_supermetaball/frag.glsl"));
       print(p.frameRate());
     }
 
@@ -32,6 +32,11 @@ var s = function (p) {
     let y = 2.0;
     let z = 3.0;//Math.sin(angle) * 3.0;
     shader.set("cameraPosition", x, y, z);
+
+    let m = p.map(Math.cos(tpi * 0.25), -1, 1, 0, 12);
+    let n2 = p.map(Math.cos(tpi * 0.125), -1, 1, 1, 12);
+    shader.set("S1", m, 5.0, 12.0, 2.0);
+    shader.set("S2", m, 1.0, 1.0, 1.0);
 
     let pg = 0.0;
     let dg = 1.0;

@@ -43,8 +43,8 @@ float SE(in vec3 p){
 	// }
 
 
-	vec4 S1 = vec4(3, 5.0, 12.0, 2.0);
-	vec4 S2 = vec4(4, 1, 1, 1);
+	// vec4 S1 = vec4(3, 5.0, 12.0, 2.0);
+	// vec4 S2 = vec4(4, 1, 1, 1);
 	float sum = 0.0;
 	for(int i = 0; i < 2; i++) {
 		vec3 q = p - bpos[i];
@@ -57,12 +57,12 @@ float SE(in vec3 p){
 		float r2=SuperFormula(rho,1.0,1.0,S2.x,S2.y,S2.z,S2.w);//the radii
 		// d-=r2*sqrt(r1*r1*(1.0-sn*sn)+sn*sn);//same as above but optimized a bit
 		vec3 np=r2*vec3(r1*cos(rho)*vec2(cos(phi),sin(phi)),sin(rho));//reconstituted point
-		sum += 1/length(np);
-		// return d;
+		sum += 1.0/(d-length(np)+0.5);
+		// return d-length(np);
 	}
 	// return 0.8-sum;
 
-	return 0.55 - 1.0/sum;
+	return -0.0125 + 1.0/sum;
 
 }
 float DDE(in vec3 p, in vec3 rd){
@@ -135,11 +135,11 @@ void main() {
 		edge=vec2(edge.y,t);
 	}
 	for(int i=0;i<2;i++){
-		if(edge.y>0.0)col=Color(ro,rd,edge.y);
+		if(edge.y>0.0)col=Color(ro,rd,edge.y*0.01);
 		edge=edge.yx;
 	}
-    float spec = 4.0;
-    float grey = pow(col.x, spec) * 500;
+    float spec = 2.0;
+    float grey = pow(col.x, spec) * 10;
 	gl_FragColor = vec4(vec3(grey),1.0);
   //   if(col.x > 0) {
 	// 	gl_FragColor = vec4(1);
