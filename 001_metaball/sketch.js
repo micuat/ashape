@@ -6,13 +6,13 @@ var s = function (p) {
 
   p.setup = function () {
     p.createCanvas(800, 800);
-    shader = p.loadShader(p.sketchPath("../001_metaball/frag.glsl"));
+    shader = p.loadShader(p.sketchPath("001_metaball/frag.glsl"));
   }
 
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 120 == 0) {
-      // shader = p.loadShader(p.sketchPath("../001_metaball/frag.glsl"));
+      // shader = p.loadShader(p.sketchPath("001_metaball/frag.glsl"));
     }
 
     let t = p.millis() * 0.001;

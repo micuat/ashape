@@ -78,9 +78,9 @@ void setup() {
   frameRate(60);
 
 
-  libPaths.add(sketchPath("event-loop-nashorn.js"));
-  libPaths.add(sketchPath("../004_ribbons/libraries/synaptic.min.js"));
-  scriptPaths.add(sketchPath("../004_ribbons/sketch.js"));
+  libPaths.add(sketchPath("libs/event-loop-nashorn.js"));
+  libPaths.add(sketchPath("libs/synaptic.min.js"));
+  scriptPaths.add(sketchPath("001_metaball/sketch.js"));
 
   initNashorn();
 }

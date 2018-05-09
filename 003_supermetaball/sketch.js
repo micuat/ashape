@@ -8,7 +8,7 @@ var s = function (p) {
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
-    shader = p.loadShader(p.sketchPath("../003_supermetaball/frag.glsl"));
+    shader = p.loadShader(p.sketchPath("003_supermetaball/frag.glsl"));
 
     for(let i = 0; i < 4; i++) {
       pos.push(p.createVector(0, 0));
@@ -18,7 +18,7 @@ var s = function (p) {
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      // shader = p.loadShader(p.sketchPath("../003_supermetaball/frag.glsl"));
+      // shader = p.loadShader(p.sketchPath("003_supermetaball/frag.glsl"));
       print(p.frameRate());
     }
 
