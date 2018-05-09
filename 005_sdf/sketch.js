@@ -13,11 +13,12 @@ var s = function (p) {
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
-    shader = p.loadShader(p.sketchPath("005_sdf/frag.glsl"));
+
+    shader = shaderHelper.load(p, "005_sdf/frag.glsl");
     nn = new synaptic.Architect.Perceptron(2, 3, 3);
     nn_move = new synaptic.Architect.Perceptron(1, 3, 3, 2);
 
-    for(let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
       pos.push(p.createVector(0, 0));
     }
 
@@ -63,7 +64,7 @@ var s = function (p) {
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      shader = p.loadShader(p.sketchPath("^005_sdf/frag.glsl"));
+      shader = shaderHelper.load(p, "005_sdf/frag.glsl");
       print(p.frameRate());
     }
 
@@ -72,7 +73,7 @@ var s = function (p) {
     p.background(0);
 
     let framePeriod = 300.0;
-    if(p.frameCount % framePeriod == 0) {
+    if (p.frameCount % framePeriod == 0) {
       reset();
     }
 
@@ -130,16 +131,16 @@ var s = function (p) {
     let itr = 50.0;
     let fg = 0.0;
 
-    for(let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
       let pdest;
-        pdest = p.createVector(p.cos(tpi * (i+1) * 0.2), 0, p.sin(tpi * (i+1) * 0.2));
-        pdest.mult(1.5);
+      pdest = p.createVector(p.cos(tpi * (i + 1) * 0.2), 0, p.sin(tpi * (i + 1) * 0.2));
+      pdest.mult(1.5);
       pos[i].lerp(pdest, 0.9);
     }
 
     let floatArray = Java.type("float[]");
     let bpos = new floatArray(3 * 4);
-    for(let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i++) {
       bpos[i * 3 + 0] = pos[i].x;
       bpos[i * 3 + 1] = pos[i].y;
       bpos[i * 3 + 2] = pos[i].z;
@@ -150,6 +151,7 @@ var s = function (p) {
     shader.set("fragGlitch", fg);
     shader.set("dGlitch", dg);
     p.filter(shader);
+    // p.rect(0, 0, p.width, p.height)
   }
 
 };

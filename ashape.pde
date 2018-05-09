@@ -79,8 +79,9 @@ void setup() {
 
 
   libPaths.add(sketchPath("libs/event-loop-nashorn.js"));
+  libPaths.add(sketchPath("libs/shader-helper.js"));
   libPaths.add(sketchPath("libs/synaptic.min.js"));
-  scriptPaths.add(sketchPath("001_metaball/sketch.js"));
+  scriptPaths.add(sketchPath("005_sdf/sketch.js"));
 
   initNashorn();
 }
