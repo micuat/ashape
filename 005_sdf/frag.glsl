@@ -42,15 +42,14 @@ float SuperFormula(float phi, float a, float b, float m, float n1, float n2, flo
 }
 
 float SE(in vec3 p){
-	float box = fBox(p-bpos[0], vec3(1));
-	float sphere = length(p-bpos[0])-1;
-	float sphere2 = length(p-bpos[2])-0.5;
-	float d;
+	float d = fBox(p-vec3(0, -1, 0), vec3(100, 1, 100));
 	float r = 0.3;
 	float n = 4;
-	
-  d = fOpDifferenceRound(box,sphere,r);
-  d = fOpUnionRound(d,sphere2,r);
+
+	for(int i = 0; i < bpos.length(); i++) {
+		float sphere = length(p-bpos[i])-1;
+	  d = fOpDifferenceRound(d,sphere,r);
+	}
 	return d;
 }
 
@@ -129,16 +128,16 @@ void main() {
 	float spec = 2;
 	float grey = pow(col.x, spec) * 10;
 
-	vec3 red = vec3(1) - texture2D(texture, vec2(0, 0)).rgb;
-	vec3 blue = vec3(1) - texture2D(texture, vec2(1, 1)).rgb;
-	// if(grey < 0.3 && grey > 0) {
-	// 	gl_FragColor = vec4(red * (grey + 0.5),1.0);
-	// }
-	// else if (grey > 0) {
-	// 	gl_FragColor = vec4(blue * grey,1.0);
-	// }
-	// else {
-	// 	gl_FragColor = vec4(texture2D(texture, fragCoord));
-	// }
-	gl_FragColor = vec4(vec3(grey), 1.0);
+	vec3 red = vec3(1,0,0);//vec3(1) - texture2D(texture, vec2(0, 0)).rgb;
+	vec3 blue = vec3(0,0,1);//vec3(1) - texture2D(texture, vec2(1, 1)).rgb;
+	if(grey < 0.7 && grey > 0) {
+		gl_FragColor = vec4(red * (grey / 0.7),1.0);
+	}
+	else if (grey > 0) {
+		gl_FragColor = vec4(blue * (grey - 0.7)*3,1.0);
+	}
+	else {
+		gl_FragColor = vec4(texture2D(texture, fragCoord));
+	}
+	// gl_FragColor = vec4(vec3(grey), 1.0);
 }

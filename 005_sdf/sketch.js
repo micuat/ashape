@@ -64,7 +64,7 @@ var s = function (p) {
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      shader = shaderHelper.load(p, "005_sdf/frag.glsl");
+      // shader = shaderHelper.load(p, "005_sdf/frag.glsl");
       print(p.frameRate());
     }
 
@@ -108,7 +108,17 @@ var s = function (p) {
 
     shader.set("iTime", t);
 
-    angle += 0.05;
+    let pg = 0.0;
+    let dg = 1.0;
+    let itr = 50.0;
+    
+    if (t % 8 < 7) {
+      angle += 0.05;
+    }
+    else {
+      pg = 0.5;
+      angle -= 0.1;
+    }
 
     let x = Math.cos(angle) * 5.0;
     let y = 3.0;
@@ -126,14 +136,9 @@ var s = function (p) {
 
     shader.set("cameraPosition", x, y, z);
 
-    let pg = 0.0;
-    let dg = 1.0;
-    let itr = 50.0;
-    let fg = 0.0;
-
     for (let i = 0; i < 4; i++) {
       let pdest;
-      pdest = p.createVector(p.cos(tpi * (i + 1) * 0.2), 0, p.sin(tpi * (i + 1) * 0.2));
+      pdest = p.createVector(p.cos(tpi * (i + 1) * 0.2), -0.2 + -0.2 * p.sin(tpi * 0.1 + (i)*p.PI), p.sin(tpi * (i + 1) * 0.2));
       pdest.mult(1.5);
       pos[i].lerp(pdest, 0.9);
     }
@@ -148,7 +153,6 @@ var s = function (p) {
     shader.set("bpos", bpos, 3);
 
     shader.set("iteration", itr);
-    shader.set("fragGlitch", fg);
     shader.set("dGlitch", dg);
     p.filter(shader);
     // p.rect(0, 0, p.width, p.height)
