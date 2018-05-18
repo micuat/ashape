@@ -21,6 +21,8 @@ uniform vec2 iMouse;//, iResolution;
 uniform float mscale;
 uniform float mtween;
 
+uniform float lightCoeff;
+
 uniform vec3 bpos[4];
 
 uniform sampler2D texture;
@@ -114,17 +116,20 @@ float SuperFormula(float phi, float a, float b, float m, float n1, float n2, flo
 float SE(in vec3 p){
 	float n = 8;
 	float m = 0.2;
+	float by = 4;
+	float tm = 2.5+5.0*sin(iTime*0.25)*sin(iTime+0.2 * length((p.xz*m-fract(p.xz*m + vec2(0.5)) + vec2(0.5)) / m));
 	p.xz = (fract(p.xz * m + vec2(0.5)) - vec2(0.5)) / m;
 
 	if(abs(p.x) <= 2 && abs(p.z) <= 2) {
 		float t = (sin(iTime) * 0.5 + 0.5) * 1.5;
 		if(t > 1) t = 1;
 		if(t < 0) t = 0;
-		p.y += sin(length((p.xz*n-fract(p.xz*n)) / n)*5-iTime*6)*0.5 * t;
+		p.y += sin(length((p.xz*n-fract(p.xz*n)) / n)*5-iTime*6)*0.5 * t + tm;
+		p.y += by;
 		p.xz = fract(p.xz*n) / n;
 	}
-	float d = fBox(p, vec3(1/n, 1, 1/n));
-	d = min(d, p.y-0.5);
+	float d = fBox(p, vec3(1/n, by, 1/n));
+	d = min(d, p.y+10);
 
 	return d;
 }
@@ -202,7 +207,7 @@ void main() {
 		edge=edge.yx;
 	}
 	float spec = 2;
-	float grey = pow(col.x, spec) * 10;
+	float grey = pow(col.x, spec) * lightCoeff;
 
 	vec3 red = vec3(0.8,0.2,0);//vec3(1) - texture2D(texture, vec2(0, 0)).rgb;
 	vec3 blue = vec3(0,0,0.9);//vec3(1) - texture2D(texture, vec2(1, 1)).rgb;

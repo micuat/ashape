@@ -82,8 +82,7 @@ void setup() {
   libPaths.add(sketchPath("libs/shader-helper.js"));
   libPaths.add(sketchPath("libs/synaptic.min.js"));
   libPaths.add(sketchPath("libs/regression.min.js"));
-  scriptPaths.add(sketchPath("006_curves/sketch.js"));
-  scriptPaths.add(sketchPath("006_curves/segment.js"));
+  scriptPaths.add(sketchPath("012_beesandbombs/sketch.js"));
 
   initNashorn();
 }
