@@ -14,7 +14,7 @@ var s = function (p) {
     x = 400;
     y = 400;
 
-    shader = shaderHelper.load(p, "015_randomwalk/frag.glsl");
+    shader = shaderHelper.load(p, "015_feedback/frag.glsl");
 
     p.background(0);
   }
@@ -22,7 +22,7 @@ var s = function (p) {
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      // shader = shaderHelper.load(p, "015_randomwalk/frag.glsl");
+      // shader = shaderHelper.load(p, "015_feedback/frag.glsl");
       print(p.frameRate());
     }
 
