@@ -14,18 +14,21 @@ float SuperShape3D(in vec3 p){
     p.xz = (fract(p.xz * 0.5 + 0.5)-0.5) / 0.5;
     pos = pos - p.xz;
     
-    float angle = atan(p.z,p.x) + 3.1415 * 2.0 * pow(sin(pos.x + pos.y + iTime),15.0);
+    float angle = atan(p.y,p.x) + 3.1415 * 2.0 * pow(sin(pos.x + iTime * 0.5),31.0);
+    p.xy = length(p.xy) * vec2(cos(angle), sin(angle));
+
+	angle = atan(p.z,p.x) + 3.1415 * pow(cos(pos.y * 0.1 + iTime * 0.5),31.0);
     p.xz = length(p.xz) * vec2(cos(angle), sin(angle));
-    
+
 	float d=length(p);//the distance to the center of the shape
 	float sn=p.z/d;//the sine of rho (the angle between z and xy)
 	float phi=atan(p.y,p.x),rho=asin(sn);//the angles to feed the formula
 	vec3 np=vec3(cos(rho)*vec2(cos(phi),sin(phi)),sin(rho));//reconstituted point
-    float r1 = sin(iTime + pos.x) * 0.5 + 0.5;
+    float r1 = sin(iTime + pos.x * 0.2) * 0.5 + 0.5;
     r1 *= 0.4;
     float d1 = length(p - np*r1*vec3(1.0,0.0,1.0)) - 0.05;
     
-    float r2 = sin(iTime * 0.1 + pos.y) * 0.5 + 0.5;
+    float r2 = sin(iTime * 0.1 + pos.y * 0.2) * 0.5 + 0.5;
     r2 *= 0.25;
     p = p - vec3(r1, 0.0, 0.0);
 	d=length(p);//the distance to the center of the shape
@@ -59,7 +62,7 @@ float shadao(vec3 ro, vec3 rd, float px,vec2 fragCoord){//pretty much IQ's SoftS
 	return res;
 }
 vec3 Sky(vec3 rd){//what sky??
-	return vec3(0.5+0.5*rd.y);
+	return vec3(0.2+0.5*rd.y);
 }
 vec3 L;
 #define SE SuperShape3D
@@ -100,13 +103,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 	L=normalize(vec3(0.4,0.8,-0.6));
 	float tim=time;
 	
-	vec3 ro=vec3(cos(tim*0.0125),0.4,sin(tim*0.0125))*5.0;
+	vec3 ro=vec3(cos(tim*0.0125),pow(sin(tim * 0.2)+0.5,4.0)*0.2+0.5,sin(tim*0.0125))*5.0;
 	vec3 rd=lookat(vec3(-0.1)-ro)*normalize(vec3((2.0*fragCoord.xy-size.xy)/size.y,3.0));
 	
-	tim*=0.7;
-	S1=mix(Setup(tim-1.0),Setup(tim),smoothstep(0.0,1.0,fract(tim)*2.0));
-	tim=tim*0.9+2.5;
-	S2=mix(Setup(tim-1.0),Setup(tim),smoothstep(0.0,1.0,fract(tim)*2.0));
+	//tim*=0.7;
+	//S1=mix(Setup(tim-1.0),Setup(tim),smoothstep(0.0,1.0,fract(tim)*2.0));
+	//tim=tim*0.9+2.5;
+	//S2=mix(Setup(tim-1.0),Setup(tim),smoothstep(0.0,1.0,fract(tim)*2.0));
 
 	float t=DDE(ro,rd)*rndStart(fragCoord),d=0.0,od=10.0;
 	vec2 edge=vec2(-1.0);
@@ -136,5 +139,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 		edge=edge.yx;
 		bFill=false;
 	}
-	fragColor = vec4(2.0*col,1.0);
+	fragColor = vec4(4.0*col,1.0);
 }
