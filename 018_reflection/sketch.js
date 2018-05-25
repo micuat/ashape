@@ -26,7 +26,7 @@ var s = function (p) {
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      shader = shaderHelper.load(p, "018_reflection/frag.glsl");
+      // shader = shaderHelper.load(p, "018_reflection/frag.glsl");
       print(p.frameRate());
     }
 
