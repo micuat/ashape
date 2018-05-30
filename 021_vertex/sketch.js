@@ -34,31 +34,39 @@ var s = function (p) {
       print(p.frameRate());
     }
 
+    let t = p.millis() * 0.001;
+
     pg.beginDraw();
     pg.background(0);
     pg.noStroke();
     pg.shader(depthShader);
     pg.pushMatrix();
     pg.translate(pg.width * 0.5, pg.height * 0.5);
-    for (let i = 0; i < 16; i++) {
-      pg.beginShape();
-      pg.vertex(p.noise(i * 0.1, 0.1, p.millis() * 0.001) * 900 - 400,
-        p.noise(i * 0.1, 0.2, p.millis() * 0.0012) * 900 - 400,
-        p.noise(i * 0.1, 0.3, p.millis() * 0.0011) * 900 - 400);
-      pg.vertex(p.noise(i * 0.1, 0.4, p.millis() * 0.0015) * 900 - 400,
-        p.noise(i * 0.1, 0.5, p.millis() * 0.0012) * 900 - 400,
-        p.noise(i * 0.1, 0.6, p.millis() * 0.0014) * 900 - 400);
-      pg.vertex(p.noise(i * 0.1, 0.7, p.millis() * 0.0008) * 900 - 400,
-        p.noise(i * 0.1, 0.8, p.millis() * 0.0011) * 900 - 400,
-        p.noise(i * 0.1, 0.9, p.millis() * 0.0009) * 900 - 400);
-      pg.endShape();
-    }
-    pg.popMatrix();
+    pg.rotateY(t*0.2);
+    pg.translate(0, 0, -400);
+    pg.rotate(t);
+    for (let j = 0; j < 8; j++) {
+      pg.translate(0, 0, 100);
+      pg.rotate(0.4);
+      for (let i = 0; i < 16; i++) {
+        let phi = p.map(i+0.5, 0, 16, 0, p.TWO_PI);
+        let phi1 = p.map(i, 0, 16, 0, p.TWO_PI);
+        let phi2 = p.map(i + 1, 0, 16, 0, p.TWO_PI);
+        let r = 400;
+        let r1 = 300 + 300 * p.noise(i, t * 2);
+        let r2 = 300 + 100 * p.noise(i + 1, t);
+        pg.fill(128 * p.sin(i + t) + 128);
+        pg.beginShape();
+        pg.vertex(r1 * p.cos(phi) * 0.5, r1 * p.sin(phi) * 0.5, -200 + 400 * p.noise(i * 5, t));
+        pg.vertex(r * p.cos(phi1), r * p.sin(phi1), 0);
+        pg.vertex(r * p.cos(phi2), r * p.sin(phi2), 0);
+        pg.endShape();
+      }
+    } pg.popMatrix();
     pg.endDraw();
     p.image(pg, 0, 0);
     shader.set("u_depth", pg);
 
-    let t = p.millis() * 0.001;
     let tpi = t * p.PI * 2;
     p.background(0);
 

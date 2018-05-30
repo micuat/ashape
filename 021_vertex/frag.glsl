@@ -222,16 +222,7 @@ vec2 map( in vec3 pos )
 	float a = pos.x - (fract((pos.x + (0.5)) / 2) * 2 - (0.5));
 	pos.x = (fract((pos.x + (0.5)) / 2) * 2 - (0.5));
 	pos.z = (fract((pos.z + (0.5)) / 3) * 3 - (0.5));
-//   vec2 res;
-// 	if(mod(a.x+a.y+0.5, 2.0) < 0.8) {
-// 		res = opU(vec2( sdPlane(     pos), 1.0 ),
-// 			vec2( sdSphere(    pos-vec3( 0.0,0.25, 0.0), 0.25 ), 46.9 ) );
-// 	}
-// 	else {
-// 		res = opU(vec2( sdPlane(     pos), 10.0 ),
-// 			vec2( sdBox(       pos-vec3( 0.0,0.25, 0.0), vec3(0.3,0.5,0.3) ), 46.9 ) );
 
-// 	}
     vec2 res;
     res = opU( vec2( sdPlane(     pos), 10.0 ), vec2( sdSphere(    pos-vec3( 0.0,0.25, 0.0), 0.25 ), 46.9 ) );
     res = opU( res,
@@ -242,14 +233,9 @@ vec2 map( in vec3 pos )
     )
     );
 
-    vec4 stex = texture2D(u_depth, orgPos.yx/orgPos.z * 2 + vec2(0,0.2));
-    stex.r = stex.r * 1 - 0.6;
-    if(abs(pos.z - stex.r) > 0.1) {
-        
-    }
-    else {
-        res = vec2(stex.r, 10);
-    }
+    vec4 stex = texture2D(u_depth, vertTexCoord.xy * 1);
+    if(stex.g>0)
+    res = opU(res, vec2(-stex.g+pos.z, stex.r * 50));
 
     return res;
 }
@@ -268,12 +254,12 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<64; i++ )
+    for( int i=0; i<128; i++ )
     {
 	    float precis = 0.0005*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
-        t += res.x;
+        t += res.x * 0.5;
 	    m = res.y;
     }
 
@@ -286,7 +272,7 @@ float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
 {
 	float res = 1.0;
     float t = mint;
-    for( int i=0; i<16; i++ )
+    for( int i=0; i<32; i++ )
     {
 		float h = map( ro + rd*t ).x;
         res = min( res, 8.0*h/t );
@@ -424,8 +410,9 @@ void main()
 #endif
 
 		// camera	
-        vec3 ro = vec3( -0.5+1, 1.0, 0.5 + 4.0 );
-        vec3 ta = vec3( -0.5, -0.4, 0.5 );
+        vec3 ro = vec3( 3.0*cos(iTime*0.2), 1.0, 3.0*sin(iTime*0.2) );
+        // vec3 ta = vec3( -0.5, -0.4, 0.5 );
+        vec3 ta = vec3(0);
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction
