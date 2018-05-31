@@ -54,6 +54,8 @@ public int newWidth, newHeight;
 
 public PApplet that = this;
 
+public Icosahedron ico = new Icosahedron(75);
+
 boolean libInited = false;
 
 float frameRate() {
@@ -82,7 +84,7 @@ void setup() {
   libPaths.add(sketchPath("libs/shader-helper.js"));
   libPaths.add(sketchPath("libs/synaptic.min.js"));
   libPaths.add(sketchPath("libs/regression.min.js"));
-  scriptPaths.add(sketchPath("012_beesandbombs/sketch.js"));
+  scriptPaths.add(sketchPath("023_ico/sketch.js"));
 
   initNashorn();
 }

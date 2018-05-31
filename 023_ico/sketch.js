@@ -25,8 +25,8 @@ var s = function (p) {
   let angle = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      shader = shaderHelper.load(p, "023_ico/frag.glsl");
-      depthShader = p.loadShader("023_ico/depthFrag.glsl", "023_ico/depthVert.glsl");
+      // shader = shaderHelper.load(p, "023_ico/frag.glsl");
+      // depthShader = p.loadShader("023_ico/depthFrag.glsl", "023_ico/depthVert.glsl");
       print(p.frameRate());
     }
 

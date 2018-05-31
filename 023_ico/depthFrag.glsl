@@ -11,6 +11,6 @@ uniform float far = 600.0;
 varying vec4 vertColor;
  
 void main() {
-    vec4 col = mix(nearColor, farColor, smoothstep(near, far, gl_FragCoord.z / gl_FragCoord.w));
-    gl_FragColor = vec4(vertColor.r, col.gba);
+    float col = mix(nearColor.r, farColor.r, smoothstep(near, far, gl_FragCoord.z / gl_FragCoord.w));
+    gl_FragColor = vec4(col, fract(col*256), fract(col*256*256), 1.0);
 }

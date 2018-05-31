@@ -230,12 +230,13 @@ vec2 map( in vec3 pos )
     res = vec2( sdPlane(     pos - vec3(0,0,0)), 300.0 );
     float y = sin(iTime*1.5 + a*0.7)*0.4 + 0.5;
     res = opU( res,
-    vec2(udRoundBox( pos - vec3(1,0,1), vec3(0.125,y,0.125), 0.02), 10)
+    vec2(udRoundBox( pos - vec3(0.25,0,0.5), vec3(0.125,y,0.125), 0.02), 10)
     );
 
     vec4 stex = texture2D(u_depth, vertTexCoord.xy * 1);
-    if(stex.g>0)
-    res = opU(res, vec2(abs(stex.g*10-pos.z), 50 + stex.g * 200));
+    float depth = stex.r + stex.g / 256 + stex.b / 256 / 256;
+    if(depth>0)
+    res = opU(res, vec2(abs(depth*10-orgPos.z-1), 50 + depth * 200));
 
     return res;
 }
