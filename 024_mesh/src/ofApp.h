@@ -23,4 +23,8 @@ public:
     string shader_filename;
     ofxShadertoy shadertoy;
     ofEasyCam camera;
+
+	ofMesh m;
+	ofFbo fbo;
+	ofTexture tex;
 };
