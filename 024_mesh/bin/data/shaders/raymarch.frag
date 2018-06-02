@@ -260,7 +260,7 @@ vec3 opTwist( vec3 p )
 
 vec2 map( in vec3 pos )
 {
-	pos.z += iTime*0.0003;
+	pos.z += iTime*0.03;
 	vec2 a = pos.xz - (fract(pos.xz + vec2(0.5)) - vec2(0.5));
 	pos.xz = fract(pos.xz + vec2(0.5)) - vec2(0.5);
   vec2 res;
@@ -282,6 +282,11 @@ vec2 map( in vec3 pos )
 			res = vec2( sdPlane(pos), 10.0 );
 		}
 	}
+
+
+    vec4 back = texture2D(iChannel1, gl_FragCoord.st/iResolution.st*1);
+    // if(back.z > 0)
+    res = opU(vec2((pos.z -(back.z*15-14)+1), 100),res);
    
     return res;
 }
@@ -300,12 +305,12 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<64; i++ )
+    for( int i=0; i<128; i++ )
     {
-	    float precis = 0.0005*t;
+	    float precis = 0.005*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
-        t += res.x;
+        t += res.x*0.25;
 	    m = res.y;
     }
 
@@ -455,8 +460,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	vec3 ro = (tCameraMatrix*vec4(0., 0., 0., 1.0)).xyz;
 	vec3 rd = vec3(p,1.0);
-    rd.z -= length(rd)*.08;
-    rd = (tCameraMatrix*vec4(normalize(rd), 1.)).xyz - ro;
+    //rd.z -= length(rd)*.08;
+    //rd = (tCameraMatrix*vec4(normalize(rd), 1.)).xyz - ro;
 
         // vec3 ro = vec3( -0.5+3.5*cos(0.1*time + 6.0*mo.x), 1.0 + 2.0*mo.y, 0.5 + 4.0*sin(0.1*time + 6.0*mo.x) );
 		// 		ro.y += pow(sin(iTime * 0.25), 4.0) * 3.0;
@@ -479,5 +484,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
 
     
-    fragColor = vec4( tot, 1.0 );
+    fragColor = vec4(mix(tot,texture2D(iChannel1, fragCoord.st/iResolution.st).rgb,0.8), 1.0 );
+    fragColor = vec4(tot, 1.0 );
 }

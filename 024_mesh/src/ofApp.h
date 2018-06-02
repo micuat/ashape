@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxShadertoy.h"
+#include "ofxAutoReloadedShader.h"
 
 class ofApp : public ofBaseApp{
 
@@ -22,6 +23,7 @@ public:
 
     string shader_filename;
     ofxShadertoy shadertoy;
+	ofxAutoReloadedShader depthShader;
     ofEasyCam camera;
 
 	ofMesh m;
