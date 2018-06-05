@@ -1,0 +1,3 @@
+ofxAutoReloadedShader
+ofxDuktape
+ofxShadertoy
