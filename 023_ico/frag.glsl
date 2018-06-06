@@ -36,6 +36,7 @@ uniform float fragGlitch;
 uniform vec4 S1, S2;//m,n1,n2,n3
 
 #pragma include "libs/hg_sdf.glslinc"
+#pragma include "libs/noise.glslinc"
 
 
 #define AA 1   // make this 1 is your machine is too slow
@@ -219,24 +220,30 @@ vec2 map( in vec3 pos )
 {
     vec3 orgPos = pos;
 
-	float a = pos.x - (fract((pos.x + (0.5)) / 2) * 2 - (0.5));
-	pos.x = (fract((pos.x + (0.5)) / 2) * 2 - (0.5));
+    float ca = 0.75;
+	float a = pos.x - (fract((pos.x + (0.5)) / ca) * ca - (0.5));
+	pos.x = (fract((pos.x + (0.5)) / ca) * ca - (0.5));
 	pos.z = (fract((pos.z + (0.5)) / 3) * 3 - (0.5));
 
     // vec2 res=vec2( sdPlane(     pos.xzy-vec3(0,-10,0)), length(pos.xz) * 3 + 30 );
     // vec2 res = vec2( sdBox(pos-vec3(0,0, -2), vec3(20,30,0.1) ), 290.0 );
 
     vec2 res;
-    res = vec2( sdPlane(     pos - vec3(0,0,0)), 300.0 );
+    res = vec2( sdPlane(     pos - vec3(0,-1.5,0)), 10.0 );
     float y = sin(iTime*1.5 + a*0.7)*0.4 + 0.5;
-    res = opU( res,
-    vec2(udRoundBox( pos - vec3(0.25,0,0.5), vec3(0.125,y,0.125), 0.02), 10)
-    );
+    // res = opU( res,
+    // vec2(udRoundBox( pos - vec3(0.25,0,0.5), vec3(0.0125,y,0.0125), 0.02), 10);
+    // );
 
     vec4 stex = texture2D(u_depth, vertTexCoord.xy * 1);
-    float depth = stex.r + stex.g / 256 + stex.b / 256 / 256;
-    if(depth>0)
-    res = opU(res, vec2(abs(depth*10-orgPos.z-1), 50 + depth * 200));
+    float depthOrg = stex.r + stex.g / 256 + stex.b / 256 / 256;
+    if(depthOrg>0) {
+    float depth = depthOrg;
+    depth += simplex3d(vec3(0.1, 0.1, iTime) + orgPos) * pow(sin(iTime * 3.1415 / 4), 4);
+    res = opU(res, 
+    vec2(-(depth-orgPos.z-1), 10 + 300 * depth)
+    );
+    }
 
     return res;
 }
@@ -246,7 +253,7 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     float tmin = 1.0;
     float tmax = 20.0;
    
-#if 1
+#if 0
     // bounding volume
     float tp1 = (0.0-ro.y)/rd.y; if( tp1>0.0 ) tmax = min( tmax, tp1 );
     float tp2 = (1.6-ro.y)/rd.y; if( tp2>0.0 ) { if( ro.y>1.6 ) tmin = max( tmin, tp2 );
@@ -414,7 +421,7 @@ void main()
         // vec3 ro = vec3( 3.0*cos(iTime*0.2), 1.0, 3.0*sin(iTime*0.2) );
         vec3 ro = vec3( 0.0, 1.0, 3.0 );
         // vec3 ta = vec3( -0.5, -0.4, 0.5 );
-        vec3 ta = vec3(0);
+        vec3 ta = vec3(0, 0.5, 0);
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction
@@ -432,11 +439,11 @@ void main()
     tot /= float(AA*AA);
 #endif
 
-    vec3 red = vec3(1.0, 0.1, 0.0);
-    vec3 green = vec3(0.5);
-    vec3 blue = vec3(0.1, 0.0, 1.0);
-    red = mix(red, green, fragCoord.t * sin(iTime * 0.5) * 0.5 + 0.5);
-    blue = mix(blue, vec3(0.0, 0.75, 0.9), sin(iTime * 0.4) * 0.5 + 0.5);
-    gl_FragColor = vec4( mix(red, blue, tot.r).rg, tot.b, 1.0 );
-    // gl_FragColor = vec4(tot, 1.0);
+    // vec3 red = vec3(1.0, 0.1, 0.0);
+    // vec3 green = vec3(0.5);
+    // vec3 blue = vec3(0.1, 0.0, 1.0);
+    // red = mix(red, green, fragCoord.t * sin(iTime * 0.5) * 0.5 + 0.5);
+    // blue = mix(blue, vec3(0.0, 0.75, 0.9), sin(iTime * 0.4) * 0.5 + 0.5);
+    // gl_FragColor = vec4( mix(red, blue, tot.r).rg, tot.b, 1.0 );
+    gl_FragColor = vec4(tot, 1.0);
 }
