@@ -16,9 +16,9 @@ var s = function (p) {
     pgColor = p.createGraphics(800, 800, p.P3D);
     shader = shaderHelper.load(p, name + "/frag.glsl");
     depthShader = p.loadShader(name + "/depthFrag.glsl", name + "/depthVert.glsl");
-}
+  }
 
-  let angle = 0;
+  let time = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
       // shader = shaderHelper.load(p, name + "/frag.glsl");
@@ -27,6 +27,12 @@ var s = function (p) {
     }
 
     let t = p.millis() * 0.001;
+    if(t % 4 < 1) {
+      time -= 1.0 / 30.0 * 2;
+    }
+    else {
+      time += 1.0 / 30.0;      
+    }
 
     function drawScene(pgraphics, mode) {
       pgraphics.noStroke();
@@ -35,35 +41,28 @@ var s = function (p) {
       pgraphics.translate(0, 0, 0);
       for(let i = 0; i < 100; i++) {
         pgraphics.pushMatrix();
-        let angle = i * Math.PI / 50 + t*0.25;
-        pgraphics.translate(p.cos(angle*1) * 300, 50-p.sin(angle*p.map(p.sin(t*0.5),-1,1,3,4)) * 20, p.sin(angle*1) * 300);
+        let angle = i * Math.PI / 50 + time*0.25;
+        pgraphics.translate(p.cos(angle*1) * 300, 50, p.sin(angle*1) * 300);
         if(mode == 0)
           pgraphics.fill(i / 100.0 * 128 + 128);
         else if(mode == 1)
           pgraphics.fill(100);
-        pgraphics.rotateY(angle*1);
-        pgraphics.rotateX(angle*2);
+        pgraphics.rotateY(angle*2);
+        pgraphics.rotateX(angle*5);
         if(mode == 0) {
-          pgraphics.sphere(50);
+          let h = 300;
+          pgraphics.box(25, 25, h);
         }
         else {
-          pgraphics.sphere(50);
+          pgraphics.box(25, 25, 300);
         }
         pgraphics.popMatrix();
-      }
-      if(mode == 1) {
-        for(let i = -5; i <= 5; i++) {
-          pgraphics.pushMatrix();
-          pgraphics.translate(i * 100, p.sin(t*2 + i * 0.5) * 150 + 300, 0);
-          pgraphics.box(50, 600, 50);
-          pgraphics.popMatrix();
-        }
       }
       pgraphics.popMatrix();
     }
 
     pgColor.beginDraw();
-    pgColor.background(255);
+    pgColor.background(230);
     pgColor.lights();
     drawScene(pgColor, 1);
     pgColor.endDraw();

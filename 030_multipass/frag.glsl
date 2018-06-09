@@ -220,6 +220,7 @@ vec3 opTwist( vec3 p )
 vec2 map( in vec3 pos )
 {
     vec3 orgPos = pos;
+    pos.x -= iTime;
 
     float ca = 0.5;
 	float a = pos.x - (fract((pos.x + (0.5)) / ca) * ca - (0.5));
@@ -227,10 +228,10 @@ vec2 map( in vec3 pos )
 	pos.z = (fract((pos.z + (0.5)) / 3) * 3 - (0.5));
 
     // vec2 res=vec2( sdPlane(     pos.xzy-vec3(0,-10,0)), length(pos.xz) * 3 + 30 );
-    vec2 res = vec2( sdBox(pos-vec3(-0.15,-4.5-2.0*sin(iTime*0.5+a), 0), vec3(0.1,5.0,0.1) ), 250.0 );
+    vec2 res = vec2( sdCylinder(pos-vec3(-0.15,0, 0), vec2(0.05,15.0) ), 1.0 );
 
     // vec2 res;
-    res = opU(res, vec2( sdPlane(     pos - vec3(0,-1.5,0)), 1.0 ));
+    res = opU(res, vec2( sdPlane(     pos - vec3(0,-1.5,0)), 80.0 ));
     float y = sin(iTime*1.5 + a*0.7)*0.4 + 0.5;
     // res = opU( res,
     // vec2(udRoundBox( pos - vec3(0.25,0,0.5), vec3(0.0125,y,0.0125), 0.02), 10);
@@ -242,9 +243,9 @@ vec2 map( in vec3 pos )
     float depthOrg = stex.r;// + stex.g / 256 + stex.b / 256 / 256;
     if(depthOrg>0) {
         float depth = depthOrg;
-        depth = 10*simplex3d(vec3(0.1, 0.1, iTime*0.1) + vec3(localFrag*1, idColor*20));// * pow(sin(iTime * 3.1415 / 4), 4);
+        depth = 1*simplex3d(vec3(0.1, 0.1, iTime*2.0) + vec3(localFrag*2, idColor*20));// * pow(sin(iTime * 3.1415 / 4), 4);
         res = opU(res, 
-        vec2(-(depthOrg-orgPos.z-1), 200 + 10 * depth)
+        vec2(-(depthOrg-orgPos.z-1), 50 + 20 * depth)
         //;
         );
     }
@@ -339,7 +340,7 @@ float checkersGradBox( in vec2 p )
 
 vec3 render( in vec3 ro, in vec3 rd )
 { 
-    vec3 sky = vec3(0);//vec3(0.7, 0.9, 1.0)
+    vec3 sky = vec3(0.5);//vec3(0.7, 0.9, 1.0)
     vec3 col = sky +rd.y*0.8;
     vec2 res = castRay(ro,rd);
     float t = res.x;
@@ -404,12 +405,13 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
 void main()
 {
     gl_FragColor = texture2D(u_color, vertTexCoord.xy);
+    gl_FragColor.rgb *= gl_FragColor.rgb;
     // gl_FragColor = vec4(vec3(texture2D(u_depth, vertTexCoord.xy).r),1);
     // float noise = simplex3d(vec3(iTime*15-fract(iTime*15), 0, 0)*0.1);
     // float cnoise = 5;
     // noise += 0.5;
-    float noise = fract(iTime * 0.5) * 1.5 - 0.25;
-    if(abs(vertTexCoord.x - noise) < 0.2) return;
+    float noise = fract(iTime) * 1.5 - 0.25;
+    if(abs(vertTexCoord.x - noise) < 0.25 && fract(iTime / 4.0) < 0.25) return;
 	vec2 iResolution = vec2(1.0);
 	vec2 fragCoord = vertTexCoord.st;
     vec2 mo = vec2(0);//iMouse.xy/iResolution.xy;
