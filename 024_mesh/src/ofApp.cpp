@@ -28,7 +28,7 @@ void ofApp::update(){
 void ofApp::draw(){
 	for (int i = 0; i < m.getNumVertices(); i++) {
 		auto v = m.getVertex(i);
-		v = glm::normalize(v) * ofMap(ofNoise(i * 0.1f, ofGetElapsedTimef() * 0.5f), 0, 1, 300, 400);
+		v = glm::normalize(v) * ofMap(ofNoise(i * 0.1f, ofGetElapsedTimef() * 0.5f), 0, 1, 200, 300);
 		m.setVertex(i, v);
 	}
 	//camera.rotateAroundRad(0.01f, glm::vec3(0, 1, 0), glm::vec3(0, 0, 100));
@@ -71,6 +71,8 @@ void ofApp::draw(){
 	//fbo.getTexture().unbind();
 	//fbo.draw(0, 0);
 	shadertoy.shader.end();
+
+	fbo.draw(0, 0);
 }
 
 

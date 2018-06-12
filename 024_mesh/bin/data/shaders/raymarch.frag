@@ -1,5 +1,3 @@
-// based on https://www.shadertoy.com/view/Xds3zN
-
 // The MIT License
 // Copyright © 2013 Inigo Quilez
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -12,76 +10,6 @@
 
 
 #define AA 1   // make this 1 is your machine is too slow
-
-/* discontinuous pseudorandom uniformly distributed in [-0.5, +0.5]^3 */
-vec3 random3(vec3 c) {
-	float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
-	vec3 r;
-	r.z = fract(512.0*j);
-	j *= .125;
-	r.x = fract(512.0*j);
-	j *= .125;
-	r.y = fract(512.0*j);
-	return r-0.5;
-}
-
-/* skew constants for 3d simplex functions */
-const float F3 =  0.3333333;
-const float G3 =  0.1666667;
-
-/* 3d simplex noise */
-float simplex3d(vec3 p) {
-  /* 1. find current tetrahedron T and it's four vertices */
-  /* s, s+i1, s+i2, s+1.0 - absolute skewed (integer) coordinates of T vertices */
-  /* x, x1, x2, x3 - unskewed coordinates of p relative to each of T vertices*/
-  
-  /* calculate s and x */
-  vec3 s = floor(p + dot(p, vec3(F3)));
-  vec3 x = p - s + dot(s, vec3(G3));
-  
-  /* calculate i1 and i2 */
-  vec3 e = step(vec3(0.0), x - x.yzx);
-  vec3 i1 = e*(1.0 - e.zxy);
-  vec3 i2 = 1.0 - e.zxy*(1.0 - e);
-  
-  /* x1, x2, x3 */
-  vec3 x1 = x - i1 + G3;
-  vec3 x2 = x - i2 + 2.0*G3;
-  vec3 x3 = x - 1.0 + 3.0*G3;
-  
-  /* 2. find four surflets and store them in d */
-  vec4 w, d;
-  
-  /* calculate surflet weights */
-  w.x = dot(x, x);
-  w.y = dot(x1, x1);
-  w.z = dot(x2, x2);
-  w.w = dot(x3, x3);
-  
-  /* w fades from 0.6 at the center of the surflet to 0.0 at the margin */
-  w = max(0.6 - w, 0.0);
-  
-  /* calculate surflet components */
-  d.x = dot(random3(s), x);
-  d.y = dot(random3(s + i1), x1);
-  d.z = dot(random3(s + i2), x2);
-  d.w = dot(random3(s + 1.0), x3);
-  
-  /* multiply d by w^4 */
-  w *= w;
-  w *= w;
-  d *= w;
-  
-  /* 3. return the sum of the four surflets */
-  return dot(d, vec4(52.0));
-}
-
-float noise(vec3 m) {
-  return 0.5333333*simplex3d(m)
-    +0.2666667*simplex3d(2.0*m)
-    +0.1333333*simplex3d(4.0*m)
-    +0.0666667*simplex3d(8.0*m);
-}
 
 //------------------------------------------------------------------
 
@@ -257,37 +185,83 @@ vec3 opTwist( vec3 p )
 }
 
 //------------------------------------------------------------------
+/* discontinuous pseudorandom uniformly distributed in [-0.5, +0.5]^3 */
+vec3 random3(vec3 c) {
+	float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
+	vec3 r;
+	r.z = fract(512.0*j);
+	j *= .125;
+	r.x = fract(512.0*j);
+	j *= .125;
+	r.y = fract(512.0*j);
+	return r-0.5;
+}
 
+/* skew constants for 3d simplex functions */
+const float F3 =  0.3333333;
+const float G3 =  0.1666667;
+
+/* 3d simplex noise */
+float simplex3d(vec3 p) {
+  /* 1. find current tetrahedron T and it's four vertices */
+  /* s, s+i1, s+i2, s+1.0 - absolute skewed (integer) coordinates of T vertices */
+  /* x, x1, x2, x3 - unskewed coordinates of p relative to each of T vertices*/
+  
+  /* calculate s and x */
+  vec3 s = floor(p + dot(p, vec3(F3)));
+  vec3 x = p - s + dot(s, vec3(G3));
+  
+  /* calculate i1 and i2 */
+  vec3 e = step(vec3(0.0), x - x.yzx);
+  vec3 i1 = e*(1.0 - e.zxy);
+  vec3 i2 = 1.0 - e.zxy*(1.0 - e);
+  
+  /* x1, x2, x3 */
+  vec3 x1 = x - i1 + G3;
+  vec3 x2 = x - i2 + 2.0*G3;
+  vec3 x3 = x - 1.0 + 3.0*G3;
+  
+  /* 2. find four surflets and store them in d */
+  vec4 w, d;
+  
+  /* calculate surflet weights */
+  w.x = dot(x, x);
+  w.y = dot(x1, x1);
+  w.z = dot(x2, x2);
+  w.w = dot(x3, x3);
+  
+  /* w fades from 0.6 at the center of the surflet to 0.0 at the margin */
+  w = max(0.6 - w, 0.0);
+  
+  /* calculate surflet components */
+  d.x = dot(random3(s), x);
+  d.y = dot(random3(s + i1), x1);
+  d.z = dot(random3(s + i2), x2);
+  d.w = dot(random3(s + 1.0), x3);
+  
+  /* multiply d by w^4 */
+  w *= w;
+  w *= w;
+  d *= w;
+  
+  /* 3. return the sum of the four surflets */
+  return dot(d, vec4(52.0));
+}
 vec2 map( in vec3 pos )
 {
-	pos.z += iTime*0.03;
-	vec2 a = pos.xz - (fract(pos.xz + vec2(0.5)) - vec2(0.5));
-	pos.xz = fract(pos.xz + vec2(0.5)) - vec2(0.5);
-  vec2 res;
-	if(simplex3d(vec3(a, 1.0)) < 0.5) {
-		if(abs(pos.x-pos.z) < 0.05) {
-			res = opU(vec2( sdPlane(pos), 10.0 ),
-				vec2( sdBox( pos-vec3( 0.0,0.025, 0.0), vec3(0.5,0.25,0.5) ), 46.9 ) );
-		}
-		else {
-			res = vec2( sdPlane(     pos), 10.0 );
-		}
-	}
-	else {
-		if(abs(pos.x+pos.z) < 0.05) {
-			res = opU(vec2( sdPlane(pos), 10.0 ),
-				vec2( sdBox( pos-vec3( 0.0,0.025, 0.0), vec3(0.5,0.25,0.5) ), 46.9 ) );
-		}
-		else {
-			res = vec2( sdPlane(pos), 10.0 );
-		}
-	}
+    
+    float d=length(pos);//the distance to the center of the shape
+	float sn=pos.z/d;//the sine of rho (the angle between z and xy)
+	float phi=atan(pos.y,pos.x),rho=asin(sn);//the angles to feed the formula
+    vec2 res = opU( vec2( sdPlane(     pos),length(pos)*0.2+0.1 ),
+	                vec2( sdSphere(    pos-vec3( 0.0,0.5, 0.0),
+                    0.5+simplex3d(pos*2.0+vec3(sin(iTime*0.2)*0.5, -(iTime)*0.5, sin(iTime*0.5)*0.5))*0.3*pow(sin(iTime*0.2),3.0) ),
+                    0.5 ) );
 
-
-    vec4 back = texture2D(iChannel1, gl_FragCoord.st/iResolution.st*1);
+    vec4 back = texture2D(iChannel1, (pos.xy*0.75+ vec2(0.5)));
     // if(back.z > 0)
-    res = opU(vec2((pos.z -(back.z*15-14)+1), 100),res);
-   
+    res = opU(vec2((pos.z -(back.z)), 100),res);
+
     return res;
 }
 
@@ -305,9 +279,9 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<128; i++ )
+    for( int i=0; i<64; i++ )
     {
-	    float precis = 0.005*t;
+	    float precis = 0.0004*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
         t += res.x*0.25;
@@ -328,7 +302,7 @@ float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
 		float h = map( ro + rd*t ).x;
         res = min( res, 8.0*h/t );
         t += clamp( h, 0.02, 0.10 );
-        if( h<0.001 || t>tmax ) break;
+        if( res<0.005 || t>tmax ) break;
     }
     return clamp( res, 0.0, 1.0 );
 }
@@ -389,13 +363,14 @@ vec3 render( in vec3 ro, in vec3 rd )
         vec3 ref = reflect( rd, nor );
         
         // material        
-		col = 0.45 + 0.35*sin( vec3(0.05,0.08,0.10)*(m-1.0) );
-        if( m<1.5 )
-        {
+		//col = 0.45 + 0.35*sin( vec3(0.05,0.08,0.10)*(m-1.0) );
+        col = vec3(m);
+        // if( m<1.5 )
+        // {
             
-            float f = checkersGradBox( 5.0*pos.xz );
-            col = 0.3 + f*vec3(0.1);
-        }
+        //     float f = checkersGradBox( 5.0*pos.xz );
+        //     col = 0.3 + f*vec3(0.1);
+        // }
 
         // lighitng        
         float occ = calcAO( pos, nor );
@@ -440,7 +415,7 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec2 mo = iMouse.xy/iResolution.xy;
+    vec2 mo = iMouse.xy/iResolution.xy * 0.0;
 	float time = 15.0 + iTime;
 
     
@@ -457,19 +432,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
 
 		// camera	
-
-	vec3 ro = (tCameraMatrix*vec4(0., 0., 0., 1.0)).xyz;
-	vec3 rd = vec3(p,1.0);
-    //rd.z -= length(rd)*.08;
-    //rd = (tCameraMatrix*vec4(normalize(rd), 1.)).xyz - ro;
-
-        // vec3 ro = vec3( -0.5+3.5*cos(0.1*time + 6.0*mo.x), 1.0 + 2.0*mo.y, 0.5 + 4.0*sin(0.1*time + 6.0*mo.x) );
-		// 		ro.y += pow(sin(iTime * 0.25), 4.0) * 3.0;
-        vec3 ta = vec3( -0.5, -0.4, 0.5 );
+        vec3 ro = vec3(0.0, 1.0,  5.0 );
+        // vec3 ro = vec3(2.0*cos(0.5*time), 1.0,  2.0*sin(0.5*time) );
+        vec3 ta = vec3(0.0, 0.5, 0.0);
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction
-        // vec3 rd = ca * normalize( vec3(p.xy,2.0) );
+        vec3 rd = ca * normalize( vec3(p.xy,2.0) );
 
         // render	
         vec3 col = render( ro, rd );
@@ -484,6 +453,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
 
     
-    fragColor = vec4(mix(tot,texture2D(iChannel1, fragCoord.st/iResolution.st).rgb,0.8), 1.0 );
-    fragColor = vec4(tot, 1.0 );
+    fragColor = vec4( tot, 1.0 );
 }
+   
