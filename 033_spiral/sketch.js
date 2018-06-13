@@ -4,7 +4,7 @@ var shader, depthShader;
 var pos = [];
 var pg;
 var pgColor;
-var name = "033_parametric";
+var name = "033_spiral";
 
 var s = function (p) {
   let myFont;
