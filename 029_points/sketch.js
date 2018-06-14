@@ -8,13 +8,16 @@ var name = "029_points";
 var s = function (p) {
 
   p.setup = function () {
-    p.createCanvas(800, 800);
+    let w = 1080;
+    let h = 1920;
+    p.createCanvas(w, h);
     p.frameRate(30);
 
-    pg = p.createGraphics(800, 800, p.P3D);
+    pg = p.createGraphics(w, h, p.P3D);
+    pgColor = p.createGraphics(w, h, p.P3D);
     shader = shaderHelper.load(p, name + "/frag.glsl");
     depthShader = p.loadShader(name + "/depthFrag.glsl", name + "/depthVert.glsl");
-}
+  }
 
   let angle = 0;
   p.draw = function () {
@@ -24,7 +27,8 @@ var s = function (p) {
       print(p.frameRate());
     }
 
-    let t = p.millis() * 0.001;
+    // let t = p.millis() * 0.001;
+    let t = p.frameCount / 30.0;
 
     pg.beginDraw();
     pg.background(0);
@@ -32,12 +36,12 @@ var s = function (p) {
     pg.shader(depthShader);
     pg.pushMatrix();
     pg.translate(pg.width * 0.5, pg.height * 0.5);
-    pg.translate(0, 0, 0);
+    pg.translate(0, 0, 500);
     // pg.rotateY(t * 0.1);
     for(let i = 0; i < 100; i++) {
       pg.pushMatrix();
       let angle = i * Math.PI / 50 * 1.5 + t*0.25;
-      pg.translate(p.cos(angle*1) * 300, 50-p.sin(angle*10) * 20, p.sin(angle*1) * 300);
+      pg.translate(p.cos(angle*1) * 300, 50-p.sin(angle*10) * 40 * (1-p.pow(p.sin(t*0.5+angle),2.0)), p.sin(angle*1) * 300);
       pg.fill(i / 100.0 * 128 + 128);
       pg.rotateY(angle*1);
       pg.rotateX(angle*2);
@@ -61,6 +65,8 @@ var s = function (p) {
 
     p.filter(shader);
 
+    // p.saveFrame("capture/record-######.png");
+    
     // p.image(pg, 0, 0);
     // p.rect(0, 0, p.width, p.height)
   }

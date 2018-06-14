@@ -36,12 +36,11 @@ uniform float fragGlitch;
 
 uniform vec4 S1, S2;//m,n1,n2,n3
 
+#define AA 1   // make this 1 is your machine is too slow
+
 #pragma include "libs/hg_sdf.glslinc"
 #pragma include "libs/noise.glslinc"
 #pragma include "libs/iq.glslinc"
-
-#define AA 1   // make this 1 is your machine is too slow
-
 //------------------------------------------------------------------
 
 vec2 map( in vec3 pos )
@@ -80,12 +79,12 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<64; i++ )
+    for( int i=0; i<128; i++ )
     {
 	    float precis = 0.00025*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
-        t += res.x * 0.5;
+        t += res.x * 0.25;
 	    m = res.y;
     }
 
@@ -243,7 +242,7 @@ void main()
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction
-        vec3 rd = ca * normalize( vec3(p.xy,2.0) );
+        vec3 rd = ca * normalize( vec3(p.xy/vec2(16.0/9.0,1.0),2.0) );
 
         // render	
         vec3 col = render( ro, rd );

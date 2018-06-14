@@ -49,7 +49,7 @@ vec2 map( in vec3 pos )
     vec3 p = opTwist(pos);
     // vec2 res = vec2(sdCylinder(p, vec2(2.0, 0.5)), 5.0);
     vec2 res = vec2( length(p*vec3(2.0,1.0,0.3))-0.50, 50+p.x*50 );
-    res = opU(res, vec2( length((p-vec3(0.5,0.0,-2.5+fract(iTime/10.0)*10.0))*vec3(2.0,1.0,0.3))-0.50, 80+p.x*50 ));
+    res = opU(res, vec2( length((p-vec3(0.5,0.0,-2.5+fract(iTime/10.0)*10.0))*vec3(2.0,1.0,0.3))-0.50,60+p.x*50 ));
 
     return res;
 }
@@ -141,7 +141,7 @@ float checkersGradBox( in vec2 p )
 
 vec3 render( in vec3 ro, in vec3 rd )
 { 
-    vec3 sky = vec3(0.0);//vec3(0.7, 0.9, 1.0)
+    vec3 sky = vec3(0.9);//vec3(0.7, 0.9, 1.0)
     vec3 col = sky +rd.y*0.01;
     vec2 res = castRay(ro,rd);
     float t = res.x;
@@ -231,7 +231,7 @@ void main()
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction
-        vec3 rd = ca * normalize( vec3(p.xy,2.0) );
+        vec3 rd = ca * normalize( vec3(p.xy/vec2(16.0/9.0,1.0),2.0) );
 
         // render	
         vec3 col = render( ro, rd );

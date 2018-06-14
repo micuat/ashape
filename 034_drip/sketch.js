@@ -9,11 +9,13 @@ var name = "034_drip";
 var s = function (p) {
   let myFont;
   p.setup = function () {
-    p.createCanvas(800, 800);
+    let w = 1080;
+    let h = 1920;
+    p.createCanvas(w, h);
     p.frameRate(30);
 
-    pg = p.createGraphics(800, 800, p.P3D);
-    pgColor = p.createGraphics(800, 800, p.P3D);
+    pg = p.createGraphics(w, h, p.P3D);
+    pgColor = p.createGraphics(w, h, p.P3D);
     shader = shaderHelper.load(p, name + "/frag.glsl");
     depthShader = p.loadShader(name + "/depthFrag.glsl", name + "/depthVert.glsl");
 
@@ -24,12 +26,13 @@ var s = function (p) {
   let time = 0;
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      // shader = shaderHelper.load(p, name + "/frag.glsl");
+      shader = shaderHelper.load(p, name + "/frag.glsl");
       // depthShader = p.loadShader(name + "/depthFrag.glsl", name + "/depthVert.glsl");
       print(p.frameRate());
     }
 
-    let t = p.millis() * 0.001;
+    // let t = p.millis() * 0.001;
+    let t = p.frameCount / 30.0;
     if(t % 4 < 1) {
       time -= 1.0 / 30.0 * 2;
     }
@@ -78,6 +81,8 @@ var s = function (p) {
 
     p.filter(shader);
 
+    // p.saveFrame("capture/record-######.png");
+    
     // p.image(pg, 0, 0);
     // p.rect(0, 0, p.width, p.height)
   }

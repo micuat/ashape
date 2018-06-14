@@ -220,13 +220,14 @@ vec2 map( in vec3 pos )
 {
     vec3 orgPos = pos;
 
-    float ca = 0.5;
+    float ca = 0.3;
 	float a = pos.x - (fract((pos.x + (0.5)) / ca) * ca - (0.5));
+	float az = pos.z - (fract((pos.z + (0.5)) / 3) * 3 - (0.5));
 	pos.x = (fract((pos.x + (0.5)) / ca) * ca - (0.5));
 	pos.z = (fract((pos.z + (0.5)) / 3) * 3 - (0.5));
 
     // vec2 res=vec2( sdPlane(     pos.xzy-vec3(0,-10,0)), length(pos.xz) * 3 + 30 );
-    vec2 res = vec2( sdBox(pos-vec3(-0.15,-4.5-2.0*sin(iTime*0.5+a), 0), vec3(0.1,5.0,0.1) ), 250.0 );
+    vec2 res = vec2( sdBox(pos-vec3(-0.15,-4.5-2.0*sin(iTime*0.5+a+az*0.25), 0), vec3(0.1,5.0,0.1) ), 250.0 );
 
     // vec2 res;
     res = opU(res, vec2( sdPlane(     pos - vec3(0,-1.5,0)), 1.0 ));
@@ -243,7 +244,7 @@ vec2 map( in vec3 pos )
         float depth = depthOrg;
         depth = 10*simplex3d(vec3(0.1, 0.1, iTime*0.1) + vec3(localFrag*1, idColor*20));// * pow(sin(iTime * 3.1415 / 4), 4);
         res = opU(res, 
-        vec2(-(depthOrg-orgPos.z-1), 200 + 10 * depth)
+        vec2(-(depthOrg-orgPos.z-1), 200 + 5 * depth)
         //;
         );
     }
@@ -265,12 +266,12 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<64; i++ )
+    for( int i=0; i<256; i++ )
     {
 	    float precis = 0.00025*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
-        t += res.x * 1.0;
+        t += res.x * 0.5;
 	    m = res.y;
     }
 
@@ -338,7 +339,7 @@ float checkersGradBox( in vec2 p )
 
 vec3 render( in vec3 ro, in vec3 rd )
 { 
-    vec3 sky = vec3(0);//vec3(0.7, 0.9, 1.0)
+    vec3 sky = vec3(0.9);//vec3(0.7, 0.9, 1.0)
     vec3 col = sky +rd.y*0.8;
     vec2 res = castRay(ro,rd);
     float t = res.x;
@@ -428,7 +429,7 @@ void main()
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
         // ray direction
-        vec3 rd = ca * normalize( vec3(p.xy,2.0) );
+        vec3 rd = ca * normalize( vec3(p.xy/vec2(16.0/9.0,1.0),2.0) );
 
         // render	
         vec3 col = render( ro, rd );
