@@ -1,4 +1,4 @@
-#version 120
+#version 150
 // https://www.shadertoy.com/view/Xds3zN
 
 #ifdef GL_ES
@@ -13,7 +13,10 @@ varying vec4 vertColor;
 // varying vec2 texCoord;
 // varying vec3 ecNormal;
 // varying vec3 lightDir;
-varying vec4 vertTexCoord;
+// varying vec4 vertTexCoord;
+// vec4 vertTexCoord = gl_FragCoord;
+
+out vec4 glFragColor;
 
 uniform float iTime;
 uniform vec2 iMouse;//, iResolution;
@@ -217,13 +220,15 @@ vec3 opTwist( vec3 p )
 vec2 map( in vec3 pos )
 {
   vec3 p = pos;
-  vec4 stex = texture2D(u_depth, (pos.xy) * 0.35+vec2(0.5));
+  vec4 stex = texture2D(u_depth, (pos.xy) * 0.5+vec2(0.5));
 
   // vec2 res = vec2(stex.r-pos.z, 5.0);
   float depth = stex.r+stex.g+stex.b;
-  depth *= 2.0;
-  // vec2 res = vec2(sdBox(p, vec3(0.5)), 50 + 20 * depth);
-  vec2 res = vec2(-(depth-p.z-1), 50 + 20 * depth);
+  depth *= .05;
+//   vec2 res = vec2(sdBox(p, vec3(0.5)), 50 + 20 * depth);
+  
+  vec2 res = vec2(sdBox(p, vec3(1.0, 1.0, 1.0+depth)), 50 - 200 * depth);
+//   if(depth>0.1) res = vec2(-(depth-p.z-1), 50 + 20 * depth);
 
   return res;
 }
@@ -247,7 +252,7 @@ vec2 castRay( in vec3 ro, in vec3 rd )
 	    float precis = 0.00025*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
-        t += res.x * 0.25;
+        t += res.x * 0.125;
 	    m = res.y;
     }
 
@@ -380,7 +385,7 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
 void main()
 {
 	vec2 iResolution = vec2(1.0);
-	vec2 fragCoord = vertTexCoord.st;
+	vec2 fragCoord = gl_FragCoord.st / 800.0;
   vec2 mo = vec2(0);//iMouse.xy/iResolution.xy;
 	float time = 15.0 + iTime;
 

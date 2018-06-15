@@ -12,6 +12,7 @@
 
 import com.thomasdiewald.pixelflow.java.DwPixelFlow;
 import com.thomasdiewald.pixelflow.java.fluid.DwFluid2D;
+import com.thomasdiewald.pixelflow.java.dwgl.DwGLSLProgram;
 
 import controlP5.Accordion;
 import controlP5.ControlP5;
@@ -98,8 +99,6 @@ int gui_y = 20;
 DwFluid2D fluid;
 ObstaclePainter obstacle_painter;
 
-// render targets
-PGraphics2D pg_fluid;
 //texture-buffer, for adding obstacles
 PGraphics2D pg_obstacles;
 
@@ -110,7 +109,8 @@ boolean DISPLAY_FLUID_TEXTURES     = true;
 boolean DISPLAY_FLUID_VECTORS      = false;
 int     DISPLAY_fluid_texture_mode = 0;
 
-PShader shader;
+DwGLSLProgram shader;
+DwPixelFlow context;
 
 public void settings() {
   size(viewport_w, viewport_h, P2D);
@@ -136,13 +136,6 @@ public void setup() {
   // interface for adding data to the fluid simulation
   MyFluidData cb_fluid_data = new MyFluidData();
   fluid.addCallback_FluiData(cb_fluid_data);
-
-  // pgraphics for fluid
-  pg_fluid = (PGraphics2D) createGraphics(viewport_w, viewport_h, P2D);
-  pg_fluid.smooth(4);
-  pg_fluid.beginDraw();
-  pg_fluid.background(BACKGROUND_COLOR);
-  pg_fluid.endDraw();
 
   // pgraphics for obstacles
   pg_obstacles = (PGraphics2D) createGraphics(viewport_w, viewport_h, P2D);
@@ -176,14 +169,17 @@ public void setup() {
 
   createGUI();
 
-  shader = loadShader(dataPath("frag.glsl"));
+  this.context = context;
+  shader = context.createShader(dataPath("frag.glsl"));
   frameRate(30);
 }
 
 
 
 public void draw() {    
-  //if (frameCount % 60 == 0) shader = loadShader(dataPath("frag.glsl"));
+  if (frameCount % 60 == 0) {
+    //shader = context.createShader(shader, dataPath("frag.glsl"));
+  }
 
   // update simulation
   if (UPDATE_FLUID) {
@@ -191,37 +187,21 @@ public void draw() {
     fluid.update();
   }
 
-  // clear render target
-  pg_fluid.beginDraw();
-  pg_fluid.background(BACKGROUND_COLOR);
-  pg_fluid.endDraw();
-
-
-  // render fluid stuff
-  if (DISPLAY_FLUID_TEXTURES) {
-    // render: density (0), temperature (1), pressure (2), velocity (3)
-    fluid.renderFluidTextures(pg_fluid, DISPLAY_fluid_texture_mode);
-  }
-
-  if (DISPLAY_FLUID_VECTORS) {
-    // render: velocity vector field
-    fluid.renderFluidVectors(pg_fluid, 10);
-  }
-
   float t = millis() * 0.001;
-  // display
-  image(pg_fluid, 0, 0);
-  shader.set("u_depth", pg_fluid);
-  shader.set("iTime", t);
 
-  filter(shader);
-  //image(pg_obstacles, 0, 0);
+  background(0);
 
-  ///obstacle_painter.displayBrush(this.g);
+  context.begin();
+  shader.begin();
+  shader.uniformTexture("u_depth", fluid.tex_density    .src);
+  shader.drawFullScreenQuad();
+  shader.end();
+  context.endDraw();
+  context.end("Fluid.renderFluidTextures");
 
   // info
-  String txt_fps = String.format(getClass().getName()+ "   [size %d/%d]   [frame %d]   [fps %6.2f]", fluid.fluid_w, fluid.fluid_h, fluid.simulation_step, frameRate);
-  surface.setTitle(txt_fps);
+  //String txt_fps = String.format(getClass().getName()+ "   [size %d/%d]   [frame %d]   [fps %6.2f]", fluid.fluid_w, fluid.fluid_h, fluid.simulation_step, frameRate);
+  //surface.setTitle(txt_fps);
 }
 
 
