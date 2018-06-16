@@ -224,10 +224,17 @@ vec2 map( in vec3 pos )
 
   // vec2 res = vec2(stex.r-pos.z, 5.0);
   float depth = stex.r+stex.g+stex.b;
-  depth *= .05;
+  depth *= .1;
+  depth = min(depth, 0.3);
 //   vec2 res = vec2(sdBox(p, vec3(0.5)), 50 + 20 * depth);
   
-  vec2 res = vec2(sdBox(p, vec3(1.0, 1.0, 1.0+depth)), 50 - 200 * depth);
+  vec2 res = vec2(sdBox(p, vec3(1.0, 1.0, 1.0+depth)), 50 - 50 * stex.r + 10 * stex.b);
+  float rad;
+  rad = 0.25;
+  res = opU(res, vec2(sdSphere(p - vec3(-1.0/3.0, 0.5, 1 + rad*0.5), rad), 50.0));
+  rad = 0.25 * 0.75;
+  res = opU(res, vec2(sdSphere(p - vec3(1.0/3.0, 0, 1.0 + rad*0.5), rad), 50.0));
+//   res = opU(res, vec2(sdSphere(p - vec3(-0.33, -0.33, 1.0), 0.15), 50.0));
 //   if(depth>0.1) res = vec2(-(depth-p.z-1), 50 + 20 * depth);
 
   return res;

@@ -67,23 +67,7 @@ private class MyFluidData implements DwFluid2D.FluidData {
     radius = 50.5f;
     r = g = b = 64/255f;
     intensity = 1.0f;
-    fluid.addDensity(px, py, radius, r, g, b, intensity, 3);
-
-
-    boolean mouse_input = !cp5.isMouseOver() && mousePressed && !obstacle_painter.isDrawing();
-
-    // add impulse: density + velocity
-    if (mouse_input && mouseButton == LEFT) {
-      radius = 15;
-      vscale = 15;
-      px     = mouseX;
-      py     = height-mouseY;
-      vx     = (mouseX - pmouseX) * +vscale;
-      vy     = (mouseY - pmouseY) * -vscale;
-
-      fluid.addDensity(px, py, radius, 0.25f, 0.0f, 0.1f, 1.0f);
-      fluid.addVelocity(px, py, radius, vx, vy);
-    }
+    //fluid.addDensity(px, py, radius, r, g, b, intensity, 3);
   }
 }
 
@@ -149,14 +133,14 @@ public void setup() {
   pg_obstacles.fill(64);
   float radius;
   radius = 100;
-  pg_obstacles.ellipse(1*width/3f, 2*height/3f, radius, radius);
+  //pg_obstacles.ellipse(1*width/3f, 2*height/3f, radius, radius);
   radius = 150;
   pg_obstacles.ellipse(2*width/3f, 2*height/4f, radius, radius);
   radius = 200;
   pg_obstacles.stroke(64);
   pg_obstacles.strokeWeight(10);
   pg_obstacles.noFill();
-  pg_obstacles.ellipse(1*width/2f, 1*height/4f, radius, radius);
+  pg_obstacles.ellipse(1*width/3f, 1*height/4f, radius, radius);
   // border-obstacle
   pg_obstacles.strokeWeight(20);
   pg_obstacles.stroke(64);
@@ -167,7 +151,7 @@ public void setup() {
   // class, that manages interactive drawing (adding/removing) of obstacles
   obstacle_painter = new ObstaclePainter(pg_obstacles);
 
-  createGUI();
+  //createGUI();
 
   this.context = context;
   shader = context.createShader(dataPath("frag.glsl"));
@@ -178,22 +162,55 @@ public void setup() {
 
 public void draw() {    
   if (frameCount % 60 == 0) {
-    //shader = context.createShader(shader, dataPath("frag.glsl"));
+    shader = context.createShader(shader, dataPath("frag.glsl"));
   }
 
+
+  float t = millis() * 0.001;
+
+  // obstacle
+  pg_obstacles.beginDraw();
+  pg_obstacles.clear();
+  // circle-obstacles
+  pg_obstacles.noStroke();
+  pg_obstacles.fill(64);
+  float radius, r;
+  radius = 150;
+  float y = (t) % 4;
+  y = 1;
+
+  if(y < 2) {
+    if(y < 1) y = 1 - y;
+    if(y >= 1) y = y - 1;
+    r = radius * sqrt(1.0 - y * y);
+    pg_obstacles.ellipse(2*width/3f, 2*height/4f, r, r);
+    radius = 200;
+    r = radius * sqrt(1.0 - y * y);
+    pg_obstacles.ellipse(1*width/3f, 1*height/4f, r, r);
+  }
+  else {
+    
+  }
+  // border-obstacle
+  pg_obstacles.strokeWeight(20);
+  pg_obstacles.stroke(64);
+  pg_obstacles.noFill();
+  pg_obstacles.rect(0, 0, pg_obstacles.width, pg_obstacles.height);
+  pg_obstacles.endDraw();
+
+  
   // update simulation
   if (UPDATE_FLUID) {
     fluid.addObstacles(pg_obstacles);
     fluid.update();
   }
 
-  float t = millis() * 0.001;
-
   background(0);
 
   context.begin();
   shader.begin();
   shader.uniformTexture("u_depth", fluid.tex_density    .src);
+  shader.uniform1f("iTime", t);
   shader.drawFullScreenQuad();
   shader.end();
   context.endDraw();
