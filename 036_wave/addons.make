@@ -1,0 +1,5 @@
+ofxAutoReloadedShader
+ofxDuktape
+ofxOsc
+ofxPubSubOsc
+ofxShadertoy
