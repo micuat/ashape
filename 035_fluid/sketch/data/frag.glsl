@@ -219,18 +219,18 @@ vec3 opTwist( vec3 p )
 
 vec2 map( in vec3 pos )
 {
-  vec3 p = pos;
-  vec4 stex = texture2D(u_depth, (pos.xy) * 0.5+vec2(0.5));
+  vec3 p = pos * vec3(0.6667, 0.6667, 1.5) + vec3(-0.25, -1.25, 0.0);
+  vec4 stex = texture2D(u_depth, (p.xy) *vec2(16.0/9.0,1.0) * 0.25+vec2(0.5));
 
   float depth = stex.r+stex.g+stex.b;
   depth *= .1;
   depth = min(depth, 0.3);
 
   
-  vec2 res = vec2(sdBox(p, vec3(1.0, 1.0, 1.0+depth)), 50 - 50 * stex.r + 10 * stex.b);
+  vec2 res = vec2(sdBox(p, vec3(2.0, 2.0, 1.0+depth)), 50 - 50 * stex.r + 10 * stex.b);
   float rad;
   rad = 0.25;
-  res = opU(res, vec2(sdSphere(p - vec3(-1.0/3.0, 0.5, 1 + rad*0.5), rad), 60.0));
+  res = opU(res, vec2(sdSphere(p - vec3(-1.0/3.0, 1.0, 1 + rad*0.5), rad), 60.0));
   rad = 0.25 * 0.75;
   res = opU(res, vec2(sdSphere(p - vec3(1.0/3.0, 0, 1.0 + rad*0.5), rad), 20.0));
 

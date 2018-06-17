@@ -29,14 +29,14 @@ private class MyFluidData implements DwFluid2D.FluidData {
     intensity = 1.0f;
     px = 1*width/3;
     py = 0;
-    radius = 100;
+    radius = 200;
     r = 0.0f;
     g = 0.3f;
     b = 1.0f;
     fluid.addDensity(px, py, radius, r, g, b, intensity);
 
-    if ((fluid.simulation_step) % 200 == 0) {
-      temperature = 50f;
+    if ((fluid.simulation_step) % 200 < 2) {
+      temperature = 30f;
       fluid.addTemperature(px, py, radius, temperature);
     }
 
@@ -52,14 +52,14 @@ private class MyFluidData implements DwFluid2D.FluidData {
     b = 0.3f;
     fluid.addDensity(px, py, radius, r, g, b, intensity);
 
-    temperature = animator * 20f;
+    temperature = animator * 50f;
     fluid.addTemperature(px, py, radius, temperature);
   }
 }
 
 
-int viewport_w = 800;
-int viewport_h = 800;
+int viewport_w = 1080;//800;
+int viewport_h = 1920;//800;
 int fluidgrid_scale = 1;
 
 int gui_w = 200;
@@ -175,4 +175,6 @@ public void draw() {
   shader.end();
   context.endDraw();
   context.end("Fluid.renderFluidTextures");
+  
+  saveFrame("capture/record-######.png");
 }
