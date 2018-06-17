@@ -32,7 +32,7 @@ void ofApp::update(){
 	grabber.update();
 
 	if (ofGetFrameNum() % 60 == 0) {
-		shadertoy.load("shaders/raymarch.frag");
+		//shadertoy.load("shaders/raymarch.frag");
  	}
 
 	if (footCount == 0 && footPressure > 0.8 && isFootReleased) {
@@ -81,7 +81,8 @@ void ofApp::keyPressed(int key){
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
     if (key == 'r') {
-    }
+		shadertoy.load("shaders/raymarch.frag");
+	}
     if (key == ' ') {
         showfps = !showfps;
     }if(key == 'f') {
