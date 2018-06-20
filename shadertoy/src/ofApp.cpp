@@ -81,5 +81,7 @@ void ofApp::gotMessage(ofMessage msg){
 
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+	if (dragInfo.files.size() > 0) {
+		shadertoy.load(dragInfo.files.at(0));
+	}
 }
