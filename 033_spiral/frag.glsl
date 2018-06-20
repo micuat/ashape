@@ -42,14 +42,34 @@ uniform vec4 S1, S2;//m,n1,n2,n3
 
 #define AA 1   // make this 1 is your machine is too slow
 
+float pi = 3.14159265359;
+
+float tilt(vec2 uv, vec2 c, float t) {
+    return (uv.x - c.x) * -cos(t) + (uv.y - c.y) * sin(t);
+}
+
 //------------------------------------------------------------------
 
 vec2 map( in vec3 pos )
 {
     vec3 p = opTwist(pos);
+
+    vec2 fragCoord = gl_FragCoord.st / 1080.0;
+    vec2 uv = fragCoord;
+
+    // Time varying pixel color
+    vec2 cb = vec2(0.5,0.0);
+
+    float baseColor = 50.0;
+    float t = iTime * 2.0;
+    vec2 res = vec2( length((p-vec3(0.5,0.0,-2.5+fract(iTime/10.0)*10.0))*vec3(2.0,1.0,0.3))-0.50,60+p.x*50 );
+    if(tilt(uv, cb, t* 1.0) < 0.0) {
+        baseColor = 80.0;
+        res = opU(res, vec2(sdPlane(pos.xzy - vec3(0.0, 0.2, 0.0)), baseColor));
+    }
+    res = opU(res, vec2( length(p*vec3(2.0,1.0,0.3))-0.50, baseColor+p.x*50 ));
+
     // vec2 res = vec2(sdCylinder(p, vec2(2.0, 0.5)), 5.0);
-    vec2 res = vec2( length(p*vec3(2.0,1.0,0.3))-0.50, 50+p.x*50 );
-    res = opU(res, vec2( length((p-vec3(0.5,0.0,-2.5+fract(iTime/10.0)*10.0))*vec3(2.0,1.0,0.3))-0.50,60+p.x*50 ));
 
     return res;
 }

@@ -81,7 +81,7 @@ var s = function (p) {
 
     p.filter(shader);
 
-    // p.saveFrame("capture/record-######.png");
+    p.saveFrame("capture/record-######.png");
 
 
     // p.image(pg, 0, 0);
