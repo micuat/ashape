@@ -215,24 +215,44 @@ vec3 opTwist( vec3 p )
     return vec3(m*p.xz,p.y);
 }
 
+float pi = 3.14159265359;
+
+float tilt(vec2 uv, vec2 c, float t) {
+    return (uv.x - c.x) * -cos(t) + (uv.y - c.y) * sin(t);
+}
+
 //------------------------------------------------------------------
 
 vec2 map( in vec3 pos )
 {
   vec3 p = pos * vec3(0.6667, 0.6667, 1.5) + vec3(-0.25, -1.25, 0.0);
-  vec4 stex = texture2D(u_depth, (p.xy) *vec2(16.0/9.0,1.0) * 0.25+vec2(0.5));
-
+  vec4 stex = texture2D(u_depth, (p.xy) *vec2(16.0/9.0,1.0) * 0.25+vec2(0.6, 0.5));
   float depth = stex.r+stex.g+stex.b;
   depth *= .1;
   depth = min(depth, 0.3);
+  float baseColor = 50.0;
+
+	vec2 fragCoord = gl_FragCoord.st / 1080.0;
+    vec2 uv = fragCoord;
+
+    // Time varying pixel color
+    vec2 cb = vec2(0.5,0.0);
+
+    float t = iTime * 2.0;
+    if(tilt(uv, cb, t* 1.0) < 0.0) {
+        depth = 0.0;
+        // stex.gb *= 0.0;
+        baseColor = 80.0;
+    }
+
 
   
-  vec2 res = vec2(sdBox(p, vec3(2.0, 2.0, 1.0+depth)), 50 - 50 * stex.r + 10 * stex.b);
+  vec2 res = vec2(sdBox(p, vec3(2.0, 2.0, 1.0+depth)), baseColor - 40 * stex.r + 20 * stex.b);
   float rad;
-  rad = 0.25;
-  res = opU(res, vec2(sdSphere(p - vec3(-1.0/3.0, 1.0, 1 + rad*0.5), rad), 60.0));
-  rad = 0.25 * 0.75;
-  res = opU(res, vec2(sdSphere(p - vec3(1.0/3.0, 0, 1.0 + rad*0.5), rad), 20.0));
+//   rad = 0.25;
+//   res = opU(res, vec2(sdSphere(p - vec3(-1.0/3.0, 1.0, 1 + rad*0.5), rad), 60.0));
+//   rad = 0.25 * 0.75;
+//   res = opU(res, vec2(sdSphere(p - vec3(1.0/3.0, 0, 1.0 + rad*0.5), rad), 20.0));
 
   return res;
 }
@@ -389,7 +409,7 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
 void main()
 {
 	vec2 iResolution = vec2(1.0);
-	vec2 fragCoord = gl_FragCoord.st / 800.0;
+	vec2 fragCoord = gl_FragCoord.st / 1080.0;
   vec2 mo = vec2(0);//iMouse.xy/iResolution.xy;
 	float time = 15.0 + iTime;
 
@@ -434,5 +454,6 @@ void main()
     // red = mix(red, green, fragCoord.t * sin(iTime * 0.5) * 0.5 + 0.5);
     // blue = mix(blue, vec3(0.0, 0.75, 0.9), sin(iTime * 0.4) * 0.5 + 0.5);
     // gl_FragColor = vec4( mix(red, blue, tot.r).rg, tot.b, 1.0 );
+
     gl_FragColor = vec4(tot, 1.0);
 }

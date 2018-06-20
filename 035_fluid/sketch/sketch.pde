@@ -45,15 +45,19 @@ private class MyFluidData implements DwFluid2D.FluidData {
 
     intensity = 1.0f;
     px = 2*width/3f;
-    py = 150;
-    radius = 50;
+    py = height-150;
+    radius = 150;
     r = 1.0f;
     g = 0.0f;
     b = 0.3f;
     fluid.addDensity(px, py, radius, r, g, b, intensity);
 
     temperature = animator * 50f;
-    fluid.addTemperature(px, py, radius, temperature);
+    //fluid.addTemperature(px, py, radius, temperature);
+    if ((fluid.simulation_step+100) % 200 < 2) {
+      temperature = -30f;
+      fluid.addTemperature(px, py, radius, temperature);
+    }
   }
 }
 
@@ -126,37 +130,38 @@ public void draw() {
   }
 
 
-  float t = millis() * 0.001;
+  //float t = millis() * 0.001;
+  float t = frameCount / 30.0;
 
   // obstacle
-  pg_obstacles.beginDraw();
-  pg_obstacles.clear();
-  // circle-obstacles
-  pg_obstacles.noStroke();
-  pg_obstacles.fill(64);
-  float radius, r;
-  radius = 150;
-  float y = (t) % 4;
-  y = 1;
+  //pg_obstacles.beginDraw();
+  //pg_obstacles.clear();
+  //// circle-obstacles
+  //pg_obstacles.noStroke();
+  //pg_obstacles.fill(64);
+  //float radius, r;
+  //radius = 150;
+  //float y = (t) % 4;
+  //y = 1;
 
-  if(y < 2) {
-    if(y < 1) y = 1 - y;
-    if(y >= 1) y = y - 1;
-    r = radius * sqrt(1.0 - y * y);
-    pg_obstacles.ellipse(2*width/3f, 2*height/4f, r, r);
-    radius = 200;
-    r = radius * sqrt(1.0 - y * y);
-    pg_obstacles.ellipse(1*width/3f, 1*height/4f, r, r);
-  }
-  else {
+  //if(y < 2) {
+  //  if(y < 1) y = 1 - y;
+  //  if(y >= 1) y = y - 1;
+  //  r = radius * sqrt(1.0 - y * y);
+  //  pg_obstacles.ellipse(2*width/3f, 2*height/4f, r, r);
+  //  radius = 200;
+  //  r = radius * sqrt(1.0 - y * y);
+  //  pg_obstacles.ellipse(1*width/3f, 1*height/4f, r, r);
+  //}
+  //else {
     
-  }
-  // border-obstacle
-  pg_obstacles.strokeWeight(20);
-  pg_obstacles.stroke(64);
-  pg_obstacles.noFill();
-  pg_obstacles.rect(0, 0, pg_obstacles.width, pg_obstacles.height);
-  pg_obstacles.endDraw();
+  //}
+  //// border-obstacle
+  //pg_obstacles.strokeWeight(20);
+  //pg_obstacles.stroke(64);
+  //pg_obstacles.noFill();
+  //pg_obstacles.rect(0, 0, pg_obstacles.width, pg_obstacles.height);
+  //pg_obstacles.endDraw();
 
   
   // update simulation
