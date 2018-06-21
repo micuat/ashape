@@ -4,15 +4,16 @@
 void ofApp::setup(){
 	grabber.initGrabber(1280, 720);
 
-	shadertoy.load("raymarch.frag");
-    ofSetFrameRate(60);
+	currentShaderFile = "raymarch.frag";
+	shadertoy.load(currentShaderFile);
+    ofSetFrameRate(30);
 
     shadertoy.setAdvanceTime(true);
     shadertoy.setCamera(&camera);
 	camera.setPosition(glm::vec3(0, -0.5, 800));
 
 	ofDisableArbTex();
-	fbo.allocate(800, 800, GL_RGBA32F);
+	fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA32F);
 }
 
 //--------------------------------------------------------------
@@ -32,9 +33,14 @@ void ofApp::draw(){
 
 	shadertoy.begin();
 	shadertoy.shader.setUniformTexture("iChannel0", fbo.getTexture(), 0);
+	shadertoy.shader.setUniform1f("iGlobalTime", ofGetFrameNum() / 30.0f);
+	shadertoy.shader.setUniform1f("iTime", ofGetFrameNum() / 30.0f);
 
-	ofDrawPlane(400, 400, 0, 800, 800);
+	ofDrawPlane(ofGetWidth() * 0.5f, ofGetHeight() * 0.5f, 0, ofGetWidth(), ofGetHeight());
 	shadertoy.end();
+
+	if(currentShaderFile != "raymarch.frag")
+	ofSaveScreen("captures/" + ofToString(ofGetFrameNum()- frameNumStart, 6, '0') + ".png");
 }
 
 
@@ -45,7 +51,7 @@ void ofApp::keyPressed(int key){
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
     if (key == 'r') {
-		shadertoy.load("shaders/raymarch.frag");
+		shadertoy.load(currentShaderFile);
 	}
     if(key == 'f') {
 		ofToggleFullscreen();
@@ -82,6 +88,8 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 	if (dragInfo.files.size() > 0) {
-		shadertoy.load(dragInfo.files.at(0));
+		currentShaderFile = dragInfo.files.at(0);
+		shadertoy.load(currentShaderFile);
+		frameNumStart = ofGetFrameNum();
 	}
 }

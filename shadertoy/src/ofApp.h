@@ -24,4 +24,6 @@ public:
     ofEasyCam camera;
 	ofFbo fbo;
 	ofVideoGrabber grabber;
+	string currentShaderFile;
+	int frameNumStart;
 };
