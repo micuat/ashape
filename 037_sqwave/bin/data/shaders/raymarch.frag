@@ -250,25 +250,46 @@ float simplex3d(vec3 p) {
   /* 3. return the sum of the four surflets */
   return dot(d, vec4(52.0));
 }
+
+float pi = 3.14159265359;
+
+float tilt(vec2 uv, vec2 c, float t) {
+    return (uv.x - c.x) * -cos(t) + (uv.y - c.y) * sin(t);
+}
+vec2 uv;
 vec2 map( in vec3 pos )
 {
+    float baseColor = 20.0;
+
+    // Time varying pixel color
+    vec2 cb = vec2(0.5,0.0);
+
+    float t = iTime * 2.0;
+    if(tilt(uv, cb, t* 1.0) < 0.0) {
+        // stex.gb *= 0.0;
+        baseColor = 60.0;
+    }
+
     float count;
     float fallin;
     if(testMode > 0) {
         count = 1.0 - fract(iTime);
-        fallin = 1.0 - fract(iTime);
+        fallin = 1.0 - fract(iTime)*fract(iTime);
         if(fract(iTime * 0.5) > 0.5) count += 1;//count = 0;
         else fallin = -10;
     }
     else count = footCount;
 
     float decay = max(0, count);
+
     float wave = 0.15 - abs(length(pos.xz) + count - 1.0);
-    if(wave < 0.0) wave = 0.0;
+    if(wave < -0.0) wave = -0.0;
+    if(count > 0.9) wave *= (1.0-count)*10.0;
     wave *= wave;
     
     float height = 4.0 * wave * decay;
-    vec2 res = vec2(sdBox(pos, vec3(1.5, 0.5 + height, 1.5)), 20.0);
+    vec2 res = vec2(sdPlane(pos - vec3(1.5, 0.5 + height, 1.5)), baseColor);
+    // vec2 res = vec2(sdBox(pos, vec3(1.5, 0.5 + height, 1.5)), baseColor);
     res = opU(res, vec2(sdSphere(pos - vec3(0.0, 0.5 + fallin, 0.0), 0.05), 20.0));
 
     return res;
@@ -456,6 +477,7 @@ float chromaKey(vec3 color)
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 fcNoShift = fragCoord / iResolution.xy;
+    uv = fcNoShift;
     vec2 fc = vec2(0,0.9) + fragCoord * vec2(1,-1) / iResolution.xy * 0.8;
     vec4 v = texture(iChannel1, fc);
 
