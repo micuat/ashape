@@ -2,6 +2,8 @@
 
 #include "ofMain.h"
 #include "ofxShadertoy.h"
+#include "ofxDuktape.h"
+#include "ofxDukOFBindings.h"
 
 class ofApp : public ofBaseApp{
 
@@ -22,8 +24,10 @@ public:
 
     ofxShadertoy shadertoy;
     ofEasyCam camera;
-	ofFbo fbo;
+	ofFbo fbo, dukFbo;
 	ofVideoGrabber grabber;
-	string currentShaderFile;
+	string currentShaderFolder;
 	int frameNumStart;
+	ofxDuktape duk;
+	string code = "";
 };
