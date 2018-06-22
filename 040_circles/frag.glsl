@@ -247,18 +247,22 @@ float simplex3d(vec3 p) {
   /* 3. return the sum of the four surflets */
   return dot(d, vec4(52.0));
 }
+
 vec2 map( in vec3 pos )
 {
-    vec2 res = vec2(sdPlane(pos-vec3(0.0, -0.5, 0.0)), 1.0);
+    vec2 res = vec2(sdPlane(pos-vec3(0.0, -0.5, 0.0)), 10.0);
 
-    if(abs(pos.x) > 10.0) return res;
-    if(abs(pos.z) > 10.0) return res;
+    if(abs(pos.x) > 5.25) return res;
+    if(abs(pos.z) > 5.25) return res;
 
-    int w = 0;
+    res = opU(res, vec2(sdPlane(pos-vec3(0.0, -0.5, 0.0)), 1.0+100.0*texture(iChannel1, pos.xz*0.1+vec2(0.5)).x));
+
+    int w = 1;
     for(int i = -w; i <= w; i++)
     {
         for(int j = -w; j <= w; j++)
         {
+            // if(abs(i)+abs(j) == 2) continue;
             //int j = 0;//, j = 0;
             vec3 dp = vec3(float(j), 0.0, float(i));
             vec3 p = pos + dp;
@@ -266,10 +270,13 @@ vec2 map( in vec3 pos )
             float c = 2.0;
             p.xz = fract(p.xz*c + vec2(0.5))/c - vec2(0.5)/c;
             q -= p.xz;
-            // p.x += sin(q.x+iTime * 0.5)*1.0;
-            p.y += cos(q.y*0.5+iTime + q.x * 0.5)*0.2;
-            // p.x += 1.5*simplex3d(vec3(q.xy, 0.11));
-            res = opU(res, vec2( sdSphere(    p-dp-vec3( 0.0,0.5, 0.0), 0.1 ), q.y * 1.0+80.0));
+            // p.y += sin(q.x+iTime * 0.5)*0.5;
+            // if(height[index] == -1000000) height[index] = sin(q.x+iTime);//texture(iChannel1, q * 0.05 + vec2(0.5)).x;
+
+            float height = 0.2 * texture(iChannel1, pos.xz*0.1+vec2(0.5)).x;
+            p.y += 1.0-0.05 - height * 3.0;
+            float n = 0.0;//simplex3d(vec3(q.xy, 0.11));
+            res = opU(res, vec2( sdSphere(    p-dp-vec3( 0.0,0.5, 0.0), 0.1 ), 20.0));
         }
     }
     return res;
@@ -289,7 +296,7 @@ vec2 castRay( in vec3 ro, in vec3 rd )
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<128; i++ )
+    for( int i=0; i<64; i++ )
     {
 	    float precis = 0.0004*t;
 	    vec2 res = map( ro+rd*t );
@@ -425,6 +432,8 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
+    vec2 fc = fragCoord * vec2(1,-1) / iResolution.xy * 0.8;
+
     vec2 mo = iMouse.xy/iResolution.xy * 0.0;
 	float time = 15.0 + iTime;
 
@@ -442,7 +451,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
 
 		// camera	
-        vec3 ro = vec3(10.0*cos(0.1*time), 3.5,  10.0*sin(0.1*time));
+        vec3 ro = vec3(5.0*cos(0.1*time), 1.5,  5.0*sin(0.1*time));
         vec3 ta = vec3(0.0, 0.0, 0.0);
         // camera-to-world transformation
         mat3 ca = setCamera( ro, ta, 0.0 );
