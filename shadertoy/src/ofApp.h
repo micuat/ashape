@@ -24,10 +24,11 @@ public:
 
     ofxShadertoy shadertoy;
     ofEasyCam camera;
-	ofFbo fbo, dukFbo;
+	ofFbo fbo, dukFbo, iChannel2Fbo;
 	ofVideoGrabber grabber;
 	string currentShaderFolder;
 	int frameNumStart;
 	ofxDuktape duk;
 	string code = "";
+	ofFloatImage iChannel2;
 };
