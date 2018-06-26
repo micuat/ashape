@@ -23,7 +23,6 @@ class cinderApp : public App {
 	gl::BatchRef			mModelBatch, mSkyBoxBatch;
 	gl::TextureCubeMapRef	mIrradianceMap, mRadianceMap;
 	gl::Texture2dRef		mNormalMap, mRoughnessMap, mMetallicMap;
-	gl::VboMeshRef	mVboMesh;
 	TriMeshRef mesh;
 
 	int						mGridSize;
@@ -78,18 +77,6 @@ void cinderApp::setup()
 	getWindow()->getSignalKeyDown().connect([this](KeyEvent event) {
 		if (event.getCode() == KeyEvent::KEY_SPACE) mShowUi = !mShowUi;
 	});
-
-	// create some geometry using a geom::Plane
-	auto plane = geom::Plane().size(vec2(20, 20)).subdivisions(ivec2(200, 50));
-
-	// Specify two planar buffers - positions are dynamic because they will be modified
-	// in the update() loop. Tex Coords are static since we don't need to update them.
-	vector<gl::VboMesh::Layout> bufferLayout = {
-		gl::VboMesh::Layout().usage(GL_DYNAMIC_DRAW).attrib(geom::Attrib::POSITION, 3),
-		gl::VboMesh::Layout().usage(GL_STATIC_DRAW).attrib(geom::Attrib::TEX_COORD_0, 2)
-	};
-
-	mVboMesh = gl::VboMesh::create(plane, bufferLayout);
 }
 
 void cinderApp::resize()
@@ -103,19 +90,6 @@ void cinderApp::mouseDown( MouseEvent event )
 
 void cinderApp::update()
 {
-	float offset = getElapsedSeconds() * 4.0f;
-
-	// Dynmaically generate our new positions based on a sin(x) + cos(z) wave
-	// We set 'orphanExisting' to false so that we can also read from the position buffer, though keep
-	// in mind that this isn't the most efficient way to do cpu-side updates. Consider using VboMesh::bufferAttrib() as well.
-	auto mappedPosAttrib = mVboMesh->mapAttrib3f(geom::Attrib::POSITION, false);
-	for (int i = 0; i < mVboMesh->getNumVertices(); i++) {
-		vec3 &pos = *mappedPosAttrib;
-		mappedPosAttrib->y = sin(offset - glm::length(vec2(pos.x, pos.z)) * 3.0) * 0.25 + 0.25;
-		++mappedPosAttrib;
-	}
-	mappedPosAttrib.unmap();
-
 	// user interface
 	if (mShowUi) {
 		ui::ScopedWindow window("PBRBasics");
@@ -152,59 +126,7 @@ void cinderApp::draw()
 		.positions()
 		.texCoords(2)
 	);
-	/*
-	// Create the points of our cube
-	vec3 v0{ -1, -1, -1 };
-	vec3 v1{ 1, -1, -1 };
-	vec3 v2{ 1,  1, -1 };
-	vec3 v3{ -1,  1, -1 };
-	vec3 v4{ -1, -1,  1 };
-	vec3 v5{ 1, -1,  1 };
-	vec3 v6{ 1,  1,  1 };
-	vec3 v7{ -1,  1,  1 };
 
-	// Create the colors for each vertex
-	Color c0{ 0, 0, 0 };
-	Color c1{ 1, 0, 0 };
-	Color c2{ 1, 1, 0 };
-	Color c3{ 0, 1, 0 };
-	Color c4{ 0, 0, 1 };
-	Color c5{ 1, 0, 1 };
-	Color c6{ 1, 1, 1 };
-	Color c7{ 0, 1, 1 };
-
-	// Create the texture coordinates for each vertex
-	vec2 t0{ 0, 0 };
-	vec2 t1{ 1, 0 };
-	vec2 t2{ 1, 1 };
-	vec2 t3{ 0, 1 };
-
-	vec3 faces[6][4] = {
-		{ v0, v1, v2, v3 },{ v3, v2, v6, v7 },{ v7, v6, v5, v4 },
-	{ v4, v5, v1, v0 },{ v5, v6, v2, v1 },{ v7, v4, v0, v3 }
-	};
-
-	for (int i = 0; i < 6; i++)
-	{
-		mesh->appendPosition(faces[i][0]);
-		mesh->appendTexCoord(t0);
-		mesh->appendPosition(faces[i][1]);
-		mesh->appendTexCoord(t1);
-		mesh->appendPosition(faces[i][2]);
-		mesh->appendTexCoord(t2);
-		mesh->appendPosition(faces[i][3]);
-		mesh->appendTexCoord(t3);
-
-		int numberVertices = mesh->getNumVertices();
-
-		mesh->appendTriangle(numberVertices - 4,
-			numberVertices - 3,
-			numberVertices - 2);
-
-		mesh->appendTriangle(numberVertices - 4,
-			numberVertices - 2,
-			numberVertices - 1);
-	}*/
 	int n = 16;
 	for (int i = 0; i < n; i++)
 	{
@@ -228,7 +150,7 @@ void cinderApp::draw()
 	mModelBatch = gl::Batch::create(*mesh, pbrShader);
 
 	// clear window and set matrices
-	gl::clear(Color(1, 0, 0));
+	gl::clear(Color(0, 0, 0));
 	gl::setMatrices(mCamera);
 
 	// enable depth testing
@@ -268,10 +190,10 @@ void cinderApp::draw()
 	}
 
 	// render skybox
-	shader = mSkyBoxBatch->getGlslProg();
-	shader->uniform("uExposure", mExposure);
-	shader->uniform("uGamma", mGamma);
-	mSkyBoxBatch->draw();
+	//shader = mSkyBoxBatch->getGlslProg();
+	//shader->uniform("uExposure", mExposure);
+	//shader->uniform("uGamma", mGamma);
+	//mSkyBoxBatch->draw();
 }
 
 CINDER_APP( cinderApp, RendererGl(RendererGl::Options().msaa(16)) )
