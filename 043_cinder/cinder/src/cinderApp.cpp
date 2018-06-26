@@ -4,6 +4,8 @@
 #include "cinder/CameraUi.h"
 #include "cinder/Log.h"
 #include "cinder/TriMesh.h"
+#include "cinder/ImageIo.h"
+#include "cinder/Utilities.h"
 
 #include "CinderImGui.h"
 using namespace ci;
@@ -75,6 +77,7 @@ void cinderApp::setup()
 	// prepare ui
 	ui::initialize();
 	getWindow()->getSignalKeyDown().connect([this](KeyEvent event) {
+		writeImage(getHomeDirectory() / "cinder" / "saveImage_" / ("capture.png"), copyWindowSurface());
 		if (event.getCode() == KeyEvent::KEY_SPACE) mShowUi = !mShowUi;
 	});
 }
@@ -119,31 +122,68 @@ void cinderApp::update()
 	}
 }
 
+float supershape(float theta, float m, float n1, float n2, float n3) {
+	float a = 1;
+	float b = 1;
+
+	float t1 = abs((1 / a)*cosf(m * theta / 4));
+	t1 = powf(t1, n2);
+	float t2 = abs((1 / b)*sinf(m * theta / 4));
+	t2 = powf(t2, n3);
+	float t3 = t1 + t2;
+	float r = powf(t3, -1 / n1);
+	return r;
+}
+
 void cinderApp::draw()
 {
 	mesh = TriMesh::create(
 		TriMesh::Format()
 		.positions()
 		.texCoords(2)
+		.normals()
 	);
 
-	int n = 16;
-	for (int i = 0; i < n; i++)
+	int ni = 32;
+	int nj = 64;
+	for (int i = 0; i <= ni; i++)
 	{
-		for (int j = 0; j < n; j++)
+		float rho = (float)i / ni * M_PI;
+		float m = lmap(sinf(getElapsedSeconds() * 0.5f + i * 0.2f), -1.0f, 1.0f, 0.0f, 7.0f);
+		float r2 = supershape(rho, m, 0.5f, 1.7f, 1.7f);
+		for (int j = 0; j <= nj; j++)
 		{
-			mesh->appendPosition(vec3((float)j / n * 2 - 1, (float)i / n * 2 - 1, 0.1*sin(j * 0.5 + i * 0.2 + getElapsedSeconds())));
-			mesh->appendTexCoord(vec2((float)j / n, (float)i / n));
+			float phi = (float)j / nj * 2 * M_PI;
+			float r1 = supershape(phi, m, 0.5f, 1.7f, 1.7f);
+			float r = 2.0f;
+			float x = r * r1 * r2 * cosf(phi) * sinf(rho);
+			float y = r * r2 * cosf(rho);
+			float z = r * r1 * r2 * sinf(phi) * sinf(rho);
+			mesh->appendPosition(vec3(x, y, z));
+			mesh->appendTexCoord(vec2((float)j / nj, (float)i / ni));
+			mesh->appendNormal(glm::normalize(vec3(cosf(phi) * sinf(rho), cosf(rho), sinf(phi) * sinf(rho))));
+			//mesh->appendTangent(glm::normalize(vec3(-sinf(phi) * sinf(rho), cosf(rho), cosf(phi) * sinf(rho))));
+			//mesh->appendBitangent(glm::normalize(vec3(cosf(phi) * cosf(rho), -sinf(rho), sinf(phi) * cosf(rho))));
 
 			if (i > 0 && j > 0) {
-				mesh->appendTriangle(i * n + j,
-					(i-1) * n + j-1,
-					i * n + j-1);
+				mesh->appendTriangle(i * nj + j,
+					(i-1) * nj + j-1,
+					i * nj + j-1);
 
-				mesh->appendTriangle(i * n + j,
-					(i - 1) * n + j,
-					(i - 1) * n + j - 1);
+				mesh->appendTriangle(i * nj + j,
+					(i - 1) * nj + j,
+					(i - 1) * nj + j - 1);
 			}
+		}
+	}
+	for (int i = 0; i <= ni; i++)
+	{
+		for (int j = 0; j <= nj; j++)
+		{
+			auto& p = mesh->getPositions<3>()[i * nj + j];
+			auto& pw = mesh->getPositions<3>()[i * nj + (j + nj - 1) % nj];
+			auto& pn = mesh->getPositions<3>()[max(i - 1, 0) * nj + j];
+			mesh->appendNormal(glm::normalize(glm::vec3(p.x - pw.x, p.y - pn.y, 0.5f)));
 		}
 	}
 	mesh->recalculateNormals();
