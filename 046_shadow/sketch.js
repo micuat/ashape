@@ -72,6 +72,8 @@ var s = function (p) {
     let normalLength = Math.sqrt(lightNormalX * lightNormalX + lightNormalY * lightNormalY + lightNormalZ * lightNormalZ);
     defaultShader.set("lightDirection", lightNormalX / -normalLength, lightNormalY / -normalLength, lightNormalZ / -normalLength);
 
+    defaultShader.set("vLightPosition", lightDir.x, lightDir.y, lightDir.z);
+
     // Send the shadowmap to the default shader
     defaultShader.set("shadowMap", shadowMap);
   }
@@ -79,8 +81,9 @@ var s = function (p) {
   function renderLandscape(canvas) {
     let offset = -p.frameCount * 0.01;
     canvas.fill(0, 85, 255, 255);
-    for (let z = -7; z <= 7; ++z)
-      for (let x = -7; x <= 7; ++x) {
+    let n = 8;
+    for (let z = -n; z <= n; ++z)
+      for (let x = -n; x <= n; ++x) {
         canvas.pushMatrix();
         let y = 30*Math.sin(p.dist(0, 0, x, z) + offset * 5);
         canvas.translate(x * 12, y, z * 12);
@@ -98,7 +101,7 @@ var s = function (p) {
     p.background(0);
 
     var lightAngle = p.frameCount * 0.002;
-    lightDir.set(Math.sin(lightAngle) * 160, 80, Math.cos(lightAngle) * 160);
+    lightDir.set(Math.sin(lightAngle) * 160, 100, Math.cos(lightAngle) * 160);
 
     // Render shadow pass
     shadowMap.beginDraw();
