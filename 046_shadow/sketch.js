@@ -82,7 +82,7 @@ var s = function (p) {
     for (let z = -7; z <= 7; ++z)
       for (let x = -7; x <= 7; ++x) {
         canvas.pushMatrix();
-        let y = 20*Math.sin(p.dist(0, 0, x, z) + offset * 5);
+        let y = 30*Math.sin(p.dist(0, 0, x, z) + offset * 5);
         canvas.translate(x * 12, y, z * 12);
         canvas.box(10, 100, 10);
         canvas.popMatrix();
@@ -98,7 +98,7 @@ var s = function (p) {
     p.background(0);
 
     var lightAngle = p.frameCount * 0.002;
-    lightDir.set(Math.sin(lightAngle) * 160, 160, Math.cos(lightAngle) * 160);
+    lightDir.set(Math.sin(lightAngle) * 160, 80, Math.cos(lightAngle) * 160);
 
     // Render shadow pass
     shadowMap.beginDraw();
@@ -121,7 +121,7 @@ var s = function (p) {
     p.pushMatrix();
     p.fill(255, 255, 255, 255);
     p.translate(lightDir.x, lightDir.y, lightDir.z);
-    p.box(5);
+    // p.box(5);
     p.popMatrix();
   }
 

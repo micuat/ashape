@@ -29,7 +29,9 @@ void main(void) {
 
     // I used step() instead of branching, should be much faster this way
     for(int n = 0; n < 9; ++n) 
-      visibility += step(shadowCoordProj.z, unpackDepth(texture2D(shadowMap, shadowCoordProj.xy + 2.0 * poissonDisk[n] / 512.0))); 
+      visibility += step(shadowCoordProj.z, unpackDepth(texture2D(shadowMap, shadowCoordProj.xy + 5.0 * (n+10.0) / 20.0 * poissonDisk[n] / 512.0))); 
+    // for(int n = 0; n < 9; ++n) 
+    //   visibility += step(shadowCoordProj.z, unpackDepth(texture2D(shadowMap, shadowCoordProj.xy + 10.0 * (n+1.0) / 10.0 * poissonDisk[n] / 512.0))); 
 
     gl_FragColor = vec4(vertColor.rgb * min(visibility * 0.05556, lightIntensity), vertColor.a); 
   } else 
