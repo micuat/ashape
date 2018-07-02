@@ -13,6 +13,9 @@ varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec4 shadowCoord; 
 varying float lightIntensity; 
+// varying vec3 vWsNormal;
+// varying vec3 vEyePosition;
+// varying vec3 vWsPosition;
 
 void main() { 
   vertColor = color;

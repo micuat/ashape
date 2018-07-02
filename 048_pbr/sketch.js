@@ -70,6 +70,13 @@ var s = function (p) {
     let lightNormalZ = lightDir.x * modelviewInv.m02 + lightDir.y * modelviewInv.m12 + lightDir.z * modelviewInv.m22;
     let normalLength = Math.sqrt(lightNormalX * lightNormalX + lightNormalY * lightNormalY + lightNormalZ * lightNormalZ);
     defaultShader.set("lightDirection", lightNormalX / -normalLength, lightNormalY / -normalLength, lightNormalZ / -normalLength);
+    defaultShader.set("uLightColor", 1.0, 1.0, 1.0);
+    defaultShader.set("uBaseColor", 1.0, 0.0, 0.0);
+
+    defaultShader.set("uSpecular", 0.5);
+    defaultShader.set("uLightRadius", 1000.0);
+    defaultShader.set("uExposure", 1.0);
+    defaultShader.set("uGamma", 0.75);
 
     defaultShader.set("vLightPosition", lightDir.x, lightDir.y, lightDir.z);
 
@@ -85,32 +92,33 @@ var s = function (p) {
     for (let x = -n; x <= n; ++x) {
       for (let z = -n; z <= n; ++z) {
         if(shader != undefined) {
-          // shader.set("uRoughness", Math.sin(z * 0.1 + p.millis() * 0.01) * 0.25 + 0.5);
+          shader.set("uRoughness", Math.sin(z * 0.1 + p.millis() * 0.01) * 0.25 + 0.5);
         }
-        canvas.fill(z*0.5/n*120+120, x*0.5/n*120.0+120, 0, 255);
+        canvas.fill(z*0.5/n*120.0+120.0, x*0.5/n*120.0+120.0, 0, 255);
         canvas.pushMatrix();
-        let y = Math.sin(x * 0.75 + z * 0.1 - offset * 5);
-        y = 30*Math.pow(y, 16.0) - 29;
-        canvas.translate(x * 24, 12, z * 24);
+        let y = Math.sin(x * 1.75 + z * 0.1 - offset * 5);
+        y = 30*Math.pow(y, 128.0);
+        canvas.translate(x * 24, y+12, z * 24);
         canvas.sphere(12);
         canvas.popMatrix();
       }
     }
-    canvas.fill(34, 34, 34, 255);
+    canvas.fill(200, 200, 34, 255);
     canvas.box(360, 5, 360);
   }
 
   p.draw = function () {
     if (p.frameCount % 60 == 0) {
-      // print(p.frameRate());
+      print(p.frameRate());
       defaultShader = p.loadShader(name + ("/default.frag"), name + ("/default.vert"));
       p.shader(defaultShader);
     }
+    // p.camera(lightDir.x, lightDir.y, lightDir.z, 0, 0, 0, 0, 1, 0);
     p.camera(0.0, 200.0, 150.0, 0.0, 0.0, 0, 0, -1, 0);
     p.background(0);
 
     var lightAngle = p.frameCount * 0.02;
-    lightDir.set(0, 100, 200);
+    lightDir.set(100 * Math.cos(lightAngle), 200, 100 * Math.sin(lightAngle));
 
     // Render shadow pass
     shadowMap.beginDraw();

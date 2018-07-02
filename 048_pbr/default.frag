@@ -18,8 +18,14 @@ float unpackDepth(vec4 color) {
 uniform sampler2D shadowMap; 
 uniform vec3 lightDirection; 
 uniform vec3 vLightPosition;
+uniform vec3 uLightColor;
+uniform vec3 uBaseColor;
+uniform float uSpecular;
 // uniform float uMetallic;
 // uniform float uRoughness;
+uniform float uLightRadius;
+uniform float uExposure;
+uniform float uGamma;
 
 varying vec4 vertColor;
 varying vec3 vNormal;
@@ -107,10 +113,7 @@ void main(void) {
 	float uMetallic = vertColor.r;
 	float uRoughness = vertColor.g;
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
-	vec3 uBaseColor = vec3(1.0, 0.0, 0.0);//vec3(vertColor.b);
 	vec3 diffuseColor		= uBaseColor - uBaseColor * uMetallic;
-  vec3 uLightColor = vec3(1.0);
-	float uSpecular = 1.0;
   vec3 specularColor = mix( vec3( 0.08 * uSpecular ), uBaseColor, uMetallic );
 	float distribution		= getNormalDistribution( uRoughness, NoH );
 	vec3 fresnel			= getFresnel( specularColor, VoH );
@@ -121,16 +124,13 @@ void main(void) {
 
 	vec3 color				= uLightColor * ( diffuse + specular );
 
-	float uLightRadius = 100.0;
 	float attenuation		= getAttenuation( vLightPosition, vPosition, uLightRadius );
 	color					*= attenuation;
 	
-  float uExposure = 3.0;
 	color					= Uncharted2Tonemap( color * uExposure );
 	const float whiteInputLevel = 0.5;
 	vec3 whiteScale			= 1.0 / Uncharted2Tonemap( vec3( whiteInputLevel ) );
 	color					= color * whiteScale;
-	float uGamma = 3.0;
 	color					= pow( color, vec3( 1.0f / uGamma ) );
 	
   // Project shadow coords, needed for a perspective light matrix (spotlight)
