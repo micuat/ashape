@@ -27,6 +27,8 @@ uniform float uLightRadius;
 uniform float uExposure;
 uniform float uGamma;
 
+uniform mat4 viewMatrix;
+
 varying vec4 vertColor;
 varying vec3 vNormal;
 varying vec3 vPosition;
@@ -100,9 +102,11 @@ float getAttenuation( vec3 lightPosition, vec3 vertexPosition, float lightRadius
 	return attenuation;
 }
 
-void main(void) { 
+void main(void) {
+	vec4 vlp4 = viewMatrix * vec4(vLightPosition, 1.0);
+	vec3 vlp = vlp4.xyz / vlp4.w;
 	vec3 N                  = normalize( vNormal );
-	vec3 L                  = normalize( vLightPosition - vPosition );
+	vec3 L                  = normalize( vlp - vPosition );
 	vec3 V                  = normalize( -vPosition );
 	vec3 H					= normalize(V + L);
 	float NoL				= saturate( dot( N, L ) );
@@ -124,7 +128,7 @@ void main(void) {
 
 	vec3 color				= uLightColor * ( diffuse + specular );
 
-	float attenuation		= getAttenuation( vLightPosition, vPosition, uLightRadius );
+	float attenuation		= getAttenuation( vlp, vPosition, uLightRadius );
 	color					*= attenuation;
 	
 	color					= Uncharted2Tonemap( color * uExposure );

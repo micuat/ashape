@@ -71,12 +71,12 @@ var s = function (p) {
     let normalLength = Math.sqrt(lightNormalX * lightNormalX + lightNormalY * lightNormalY + lightNormalZ * lightNormalZ);
     defaultShader.set("lightDirection", lightNormalX / -normalLength, lightNormalY / -normalLength, lightNormalZ / -normalLength);
     defaultShader.set("uLightColor", 1.0, 1.0, 1.0);
-    defaultShader.set("uBaseColor", 1.0, 0.0, 0.0);
+    defaultShader.set("uBaseColor", 0.5, 0.0, 0.0);
 
-    defaultShader.set("uSpecular", 0.5);
-    defaultShader.set("uLightRadius", 1000.0);
-    defaultShader.set("uExposure", 1.0);
-    defaultShader.set("uGamma", 0.75);
+    defaultShader.set("uSpecular", 0.99);
+    defaultShader.set("uLightRadius", 500.0);
+    defaultShader.set("uExposure", 2.0);
+    defaultShader.set("uGamma", 0.6);
 
     defaultShader.set("vLightPosition", lightDir.x, lightDir.y, lightDir.z);
 
@@ -85,6 +85,7 @@ var s = function (p) {
   }
 
   function renderLandscape(canvas, shader) {
+    canvas.pushMatrix();
     let offset = -p.frameCount * 0.01;
     let n = 4.0;
     if(shader != undefined) {
@@ -98,13 +99,14 @@ var s = function (p) {
         canvas.pushMatrix();
         let y = Math.sin(x * 1.75 + z * 0.1 - offset * 5);
         y = 30*Math.pow(y, 128.0);
-        canvas.translate(x * 24, y+12, z * 24);
+        canvas.translate(x * 24, -y-12, z * 24);
         canvas.sphere(12);
         canvas.popMatrix();
       }
     }
     canvas.fill(200, 200, 34, 255);
     canvas.box(360, 5, 360);
+    canvas.popMatrix();
   }
 
   p.draw = function () {
@@ -113,12 +115,33 @@ var s = function (p) {
       defaultShader = p.loadShader(name + ("/default.frag"), name + ("/default.vert"));
       p.shader(defaultShader);
     }
-    // p.camera(lightDir.x, lightDir.y, lightDir.z, 0, 0, 0, 0, 1, 0);
-    p.camera(0.0, 200.0, 150.0, 0.0, 0.0, 0, 0, -1, 0);
+    let viewMatrix = new Packages.processing.core.PMatrix3D(
+      0.5, 0.0, 0.0, 0.5,
+      0.0, 0.5, 0.0, 0.5,
+      0.0, 0.0, 0.5, 0.5,
+      0.0, 0.0, 0.0, 1.0
+    );
+    let cameraPosition = {x: 0.0, y: -200.0, z: 150.0};
+    viewMatrix.translate(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+    defaultShader.set("viewMatrix", new Packages.processing.core.PMatrix3D(
+      viewMatrix.m00, viewMatrix.m10, viewMatrix.m20, viewMatrix.m30,
+      viewMatrix.m01, viewMatrix.m11, viewMatrix.m21, viewMatrix.m31,
+      viewMatrix.m02, viewMatrix.m12, viewMatrix.m22, viewMatrix.m32,
+      viewMatrix.m03, viewMatrix.m13, viewMatrix.m23, viewMatrix.m33
+    ));
+    let modelviewInv = p.g.modelviewInv;
+    defaultShader.set("modelviewInv", new Packages.processing.core.PMatrix3D(
+      modelviewInv.m00, modelviewInv.m10, modelviewInv.m20, modelviewInv.m30,
+      modelviewInv.m01, modelviewInv.m11, modelviewInv.m21, modelviewInv.m31,
+      modelviewInv.m02, modelviewInv.m12, modelviewInv.m22, modelviewInv.m32,
+      modelviewInv.m03, modelviewInv.m13, modelviewInv.m23, modelviewInv.m33
+    ));
+
+    p.camera(cameraPosition.x, cameraPosition.y, cameraPosition.z, 0.0, 0.0, 0, 0, 1, 0);
     p.background(0);
 
     var lightAngle = p.frameCount * 0.02;
-    lightDir.set(100 * Math.cos(lightAngle), 200, 100 * Math.sin(lightAngle));
+    lightDir.set(100 * Math.cos(lightAngle), -100, 100 * Math.sin(lightAngle));
 
     // Render shadow pass
     shadowMap.beginDraw();
@@ -141,7 +164,6 @@ var s = function (p) {
     p.pushMatrix();
     p.fill(255, 255, 255, 255);
     p.translate(lightDir.x, lightDir.y, lightDir.z);
-    // p.box(5);
     p.popMatrix();
   }
 
