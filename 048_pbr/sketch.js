@@ -1,12 +1,13 @@
 // instance mode by Naoto Hieda
 
-var lightDir;
+var lightPos;
 var defaultShader;
 var shadowMap;
 var pgColor;
 
 var s = function (p) {
   let name;
+  let lightDirection = {x: 0.0, y: 0.0, z: 0.0};
   function initShadowPass() {
     shadowMap = p.createGraphics(2048, 2048, p.P3D);
     shadowMap.noSmooth(); // Antialiasing on the shadowMap leads to weird artifacts
@@ -33,7 +34,7 @@ var s = function (p) {
 
     initShadowPass();
     initDefaultPass();
-    lightDir = p.createVector();
+    lightPos = p.createVector();
   }
 
   function updateDefaultShader() {
@@ -65,11 +66,12 @@ var s = function (p) {
 
     // Calculate light direction normal, which is the transpose of the inverse of the
     // modelview matrix and send it to the default shader.
-    let lightNormalX = lightDir.x * modelviewInv.m00 + lightDir.y * modelviewInv.m10 + lightDir.z * modelviewInv.m20;
-    let lightNormalY = lightDir.x * modelviewInv.m01 + lightDir.y * modelviewInv.m11 + lightDir.z * modelviewInv.m21;
-    let lightNormalZ = lightDir.x * modelviewInv.m02 + lightDir.y * modelviewInv.m12 + lightDir.z * modelviewInv.m22;
+    let lightNormalX = lightPos.x * modelviewInv.m00 + lightPos.y * modelviewInv.m10 + lightPos.z * modelviewInv.m20;
+    let lightNormalY = lightPos.x * modelviewInv.m01 + lightPos.y * modelviewInv.m11 + lightPos.z * modelviewInv.m21;
+    let lightNormalZ = lightPos.x * modelviewInv.m02 + lightPos.y * modelviewInv.m12 + lightPos.z * modelviewInv.m22;
     let normalLength = Math.sqrt(lightNormalX * lightNormalX + lightNormalY * lightNormalY + lightNormalZ * lightNormalZ);
-    defaultShader.set("lightDirection", lightNormalX / -normalLength, lightNormalY / -normalLength, lightNormalZ / -normalLength);
+    lightDirection = {x: lightNormalX / -normalLength, y: lightNormalY / -normalLength, z: lightNormalZ / -normalLength};
+    defaultShader.set("lightDirection", lightDirection.x, lightDirection.y, lightDirection.z);
     defaultShader.set("uLightColor", 1.0, 1.0, 1.0);
     defaultShader.set("uBaseColor", 0.5, 0.0, 0.0);
 
@@ -78,7 +80,7 @@ var s = function (p) {
     defaultShader.set("uExposure", 2.0);
     defaultShader.set("uGamma", 0.6);
 
-    defaultShader.set("vLightPosition", lightDir.x, lightDir.y, lightDir.z);
+    defaultShader.set("vLightPosition", lightPos.x, lightPos.y, lightPos.z);
 
     // Send the shadowmap to the default shader
     defaultShader.set("shadowMap", shadowMap);
@@ -97,9 +99,7 @@ var s = function (p) {
         }
         canvas.fill(z*0.5/n*120.0+120.0, x*0.5/n*120.0+120.0, 0, 255);
         canvas.pushMatrix();
-        let y = Math.sin(x * 1.75 + z * 0.1 - offset * 5);
-        y = 30*Math.pow(y, 128.0);
-        canvas.translate(x * 24, -y-12, z * 24);
+        canvas.translate(x * 24, -12, z * 24);
         canvas.sphere(12);
         canvas.popMatrix();
       }
@@ -141,11 +141,11 @@ var s = function (p) {
     p.background(0);
 
     var lightAngle = p.frameCount * 0.02;
-    lightDir.set(100 * Math.cos(lightAngle), -100, 100 * Math.sin(lightAngle));
+    lightPos.set(10 * Math.cos(lightAngle), -13, 10 * Math.sin(lightAngle));
 
     // Render shadow pass
     shadowMap.beginDraw();
-    shadowMap.camera(lightDir.x, lightDir.y, lightDir.z, 0, 0, 0, 0, 1, 0);
+    shadowMap.camera(lightPos.x, lightPos.y, lightPos.z, lightDirection.x-lightPos.x, lightDirection.y-lightPos.y, lightDirection.z-lightPos.z, 0, 1, 0);
     shadowMap.background(255, 255, 255, 255); // Will set the depth to 1.0 (maximum depth)
     renderLandscape(shadowMap);
     shadowMap.endDraw();
@@ -163,7 +163,7 @@ var s = function (p) {
     // Render light source
     p.pushMatrix();
     p.fill(255, 255, 255, 255);
-    p.translate(lightDir.x, lightDir.y, lightDir.z);
+    p.translate(lightPos.x, lightPos.y, lightPos.z);
     p.popMatrix();
   }
 

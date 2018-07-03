@@ -103,7 +103,7 @@ float getAttenuation( vec3 lightPosition, vec3 vertexPosition, float lightRadius
 }
 
 void main(void) {
-	vec4 vlp4 = viewMatrix * vec4(vLightPosition, 1.0);
+	vec4 vlp4 = viewMatrix * vec4(vLightPosition*0.0-(vPosition-vLightPosition), 1.0);
 	vec3 vlp = vlp4.xyz / vlp4.w;
 	vec3 N                  = normalize( vNormal );
 	vec3 L                  = normalize( vlp - vPosition );

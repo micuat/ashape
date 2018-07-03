@@ -6,6 +6,7 @@ uniform mat4 projection;
 uniform mat3 normalMatrix; 
 uniform mat4 shadowTransform; 
 uniform vec3 lightDirection; 
+uniform vec3 vLightPosition;
 
 attribute vec4 vertex; 
 attribute vec4 color; 
@@ -26,7 +27,7 @@ void main() {
   vNormal = normalize(normalMatrix * normal); // Get normal direction in model view space
   // vNormal = normalize(vec3( viewMatrix * vec4( vNormal, 0.0 ) ));
   shadowCoord = shadowTransform * (vPosition4 + vec4(vNormal, 0.0)); // Normal bias removes the shadow acne
-  lightIntensity = 0.5 + dot(-lightDirection, vNormal) * 0.5; 
   gl_Position = transform * vertex;
   vPosition = gl_Position.xyz / gl_Position.w;
+  lightIntensity = 0.5 + dot(-lightDirection*0.0 - (vPosition-vLightPosition), vNormal) * 0.5; 
 }
