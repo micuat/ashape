@@ -4,6 +4,7 @@ var lightDir;
 var defaultShader;
 var shadowMap;
 var pgColor;
+var cam;
 
 var s = function (p) {
   let name;
@@ -33,8 +34,9 @@ var s = function (p) {
 
     initShadowPass();
     initDefaultPass();
-    p.camera(0.0, 200.0, 200.0, 0.0, 0.0, 0, 0, -1, 0);
+    // p.camera(0.0, 200.0, 200.0, 0.0, 0.0, 0, 0, -1, 0);
     lightDir = p.createVector();
+    cam = new Packages.peasy.PeasyCam(pApplet.that, 500);
   }
 
   function updateDefaultShader() {
@@ -100,7 +102,7 @@ var s = function (p) {
     }
     p.background(0);
 
-    var lightAngle = p.frameCount * 0.002;
+    var lightAngle = p.frameCount * 0.02;
     lightDir.set(Math.sin(lightAngle) * 160, 100, Math.cos(lightAngle) * 160);
 
     // Render shadow pass
