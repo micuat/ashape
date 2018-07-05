@@ -10,9 +10,9 @@ varying vec3 reflectDir;
 void main() {
   gl_Position = transform * vertex;
   
-  mat4 inv = inverse(modelview);
-  vec3 ecNormal = normalize(vec3(vec4(normal, 1.0))); // Vertex in eye coordinates
+  // mat4 inv = inverse(modelview);
+  // vec3 ecNormal = normalize(vec3(vec4(normal, 1.0))); // Vertex in eye coordinates
   vec3 ecVertex = vec3(vertex); // Normal vector in eye coordinates
   vec3 eyeDir = ecVertex.xyz;
-  reflectDir = reflect(eyeDir, ecNormal);
+  reflectDir = eyeDir;//reflect(eyeDir, ecNormal);
 }

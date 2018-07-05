@@ -1,17 +1,12 @@
+// var doLoadShader = true;
+var cubemapShader, cubemapbackShader, textures;
+
 var s = function (p) {
   let name;
-  let cubemapShader, cubemapbackShader;
   let mesh, meshb
   let cam;
 
-  p.setup = function () {
-    name = p.folderName;
-
-    cam = new Packages.peasy.PeasyCam(pApplet.that, 300);
-
-    p.createCanvas(800, 800);
-    p.frameRate(30);
-
+  function loadShader() {
     let PGL = Packages.processing.opengl.PGL;
     let pgl = p.beginPGL();
     // create the OpenGL-based cubeMap
@@ -33,12 +28,14 @@ var s = function (p) {
     let glTextureId = IntBuffer.allocate(1);
 
     let textureNames = ["posx.jpg", "negx.jpg", "posy.jpg", "negy.jpg", "posz.jpg", "negz.jpg"];
-    let textures = new Array(textureNames.length);
-    for (let i = 0; i < textures.length; i++) {
-      textures[i] = p.loadImage(name + "/Storforsen/" + textureNames[i]);
+    if(textures == undefined) {
+      textures = new Array(textureNames.length);
+      for (let i = 0; i < textures.length; i++) {
+        textures[i] = p.loadImage(name + "/Storforsen/" + textureNames[i]);
 
-      //Uncomment this for smoother reflections. This downsamples the textures
-      // textures[i].resize(20,20);
+        //Uncomment this for smoother reflections. This downsamples the textures
+        // textures[i].resize(20,20);
+      }
     }
 
     // put the textures in the cubeMap
@@ -58,26 +55,23 @@ var s = function (p) {
 
     cubemapbackShader = p.loadShader(name + "/cubemapback.frag", name + "/cubemapback.vert");
     cubemapbackShader.set("cubemap", 1);
+  }
 
-    mesh = p.createShape(p.SPHERE, 100);
-    mesh.disableStyle();
+  p.setup = function () {
+    name = p.folderName;
+
+    cam = new Packages.peasy.PeasyCam(pApplet.that, 300);
+
+    p.createCanvas(800, 800);
+    p.frameRate(30);
+
+    //if(doLoadShader)
+    loadShader();
+
     meshb = p.createShape(p.BOX, 1000);
     meshb.disableStyle();
 
   }
-
-  function updateDefaultShader() {
-    defaultShader.set("uSpecular", 0.99);
-    defaultShader.set("uLightRadius", 500.0);
-    defaultShader.set("uExposure", 2.0);
-    defaultShader.set("uGamma", 0.6);
-
-    defaultShader.set("vLightPosition", lightPos.x, lightPos.y, lightPos.z);
-
-    // Send the shadowmap to the default shader
-    defaultShader.set("shadowMap", shadowMap);
-  }
-
 
   p.draw = function () {
     p.background(0);
@@ -87,8 +81,55 @@ var s = function (p) {
     p.noStroke();
     p.shape(meshb);
   
-    //shader(cubemapShader);
-    //mesh is a PShape object
+    p.shader(cubemapShader);
+
+    cubemapShader.set("uLightColor", 1.0, 1.0, 1.0);
+    cubemapShader.set("uBaseColor", 0.5, 0.0, 0.0);
+
+    cubemapShader.set("uSpecular", 0.99);
+    cubemapShader.set("uLightRadius", 500.0);
+    cubemapShader.set("uExposure", 2.0);
+    cubemapShader.set("uGamma", 0.6);
+
+    cubemapShader.set("vLightPosition", 0, 100, 0);
+
+    mesh = p.createShape();
+    let m = 24.0;
+    let t = p.millis() * 0.001;
+    for(let i = 0; i < m; i++) {
+      mesh.beginShape(p.TRIANGLE_STRIP);
+
+      let n = 24.0;
+      for(let j = 0; j <= n + 1; j++) {
+        let r = 30.0;
+        let rho = i / m * 1.0 * Math.PI;
+        let phi = j / n * 2.0 * Math.PI;
+        let x = Math.cos(phi) * Math.sin(rho);
+        let y = Math.cos(rho);
+        let z = Math.sin(phi) * Math.sin(rho);
+        r += p.noise(x * 2, y * 2, t) * 100;
+        x *= r;
+        y *= r;
+        z *= r;
+        // mesh.normal(x, y, 0);
+        mesh.vertex(x, y, z);
+
+        r = 30.0;
+        rho = (i + 1) / m * 1.0 * Math.PI;
+        x = Math.cos(phi) * Math.sin(rho);
+        y = Math.cos(rho);
+        z = Math.sin(phi) * Math.sin(rho);
+        r += p.noise(x * 2, y * 2, t) * 100;
+        x *= r;
+        y *= r;
+        z *= r;
+        // mesh.normal(x, 0, z);
+        mesh.vertex(x, y, z);
+      }
+
+      mesh.endShape();
+    }
+    mesh.disableStyle();
     p.shape(mesh);
     p.resetShader();
   }
