@@ -96,30 +96,31 @@ var s = function (p) {
     mesh = p.createShape();
     let m = 24.0;
     let t = p.millis() * 0.001;
+    let rn = 100 * p.pow(p.map(Math.sin(0.5 * t * Math.PI), -1, 1, 0, 1), 2.0);
     for(let i = 0; i < m; i++) {
       mesh.beginShape(p.TRIANGLE_STRIP);
 
       let n = 24.0;
       for(let j = 0; j <= n + 1; j++) {
-        let r = 30.0;
+        let r = 100.0;
         let rho = i / m * 1.0 * Math.PI;
         let phi = j / n * 2.0 * Math.PI;
         let x = Math.cos(phi) * Math.sin(rho);
         let y = Math.cos(rho);
         let z = Math.sin(phi) * Math.sin(rho);
-        r += p.noise(x * 2, y * 2, t) * 100;
+        r += p.noise(x * 2, y * 2, t) * rn - rn * 0.5;
         x *= r;
         y *= r;
         z *= r;
         // mesh.normal(x, y, 0);
         mesh.vertex(x, y, z);
 
-        r = 30.0;
+        r = 100.0;
         rho = (i + 1) / m * 1.0 * Math.PI;
         x = Math.cos(phi) * Math.sin(rho);
         y = Math.cos(rho);
         z = Math.sin(phi) * Math.sin(rho);
-        r += p.noise(x * 2, y * 2, t) * 100;
+        r += p.noise(x * 2, y * 2, t) * rn - rn * 0.5;
         x *= r;
         y *= r;
         z *= r;
