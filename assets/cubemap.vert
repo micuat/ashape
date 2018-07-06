@@ -11,8 +11,8 @@ void main() {
   gl_Position = transform * vertex;
   
   // mat4 inv = inverse(modelview);
-  // vec3 ecNormal = normalize(vec3(vec4(normal, 1.0))); // Vertex in eye coordinates
+  vec3 ecNormal = normalize(vec3(vec4(normal, 1.0))); // Vertex in eye coordinates
   vec3 ecVertex = vec3(vertex); // Normal vector in eye coordinates
   vec3 eyeDir = ecVertex.xyz;
-  reflectDir = eyeDir;//reflect(eyeDir, ecNormal);
+  reflectDir = reflect(eyeDir, ecNormal);
 }

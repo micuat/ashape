@@ -2,13 +2,68 @@ if (context == undefined) {
   var context = null;
 }
 
+var cubemapShader, cubemapbackShader, textures;
+
 var s = function (p) {
 
   let zoomF = 0.3;
   let rotX = p.radians(180);  // by default rotate the hole scene 180deg around the x-axis, 
   // the data from openni comes upside down
   let rotY = p.radians(0);
-  let points;
+  let points, normals;
+  let mesh, meshb;
+  let cam;
+
+  function loadShader() {
+    let PGL = Packages.processing.opengl.PGL;
+    let pgl = p.beginPGL();
+    // create the OpenGL-based cubeMap
+    let IntBuffer = Packages.java.nio.IntBuffer;
+    let envMapTextureID = IntBuffer.allocate(1);
+    pgl.genTextures(1, envMapTextureID);
+    pgl.activeTexture(PGL.TEXTURE1);
+    pgl.enable(PGL.TEXTURE_CUBE_MAP);
+    pgl.bindTexture(PGL.TEXTURE_CUBE_MAP, envMapTextureID.get(0));
+    pgl.texParameteri(PGL.TEXTURE_CUBE_MAP, PGL.TEXTURE_WRAP_S, PGL.CLAMP_TO_EDGE);
+    pgl.texParameteri(PGL.TEXTURE_CUBE_MAP, PGL.TEXTURE_WRAP_T, PGL.CLAMP_TO_EDGE);
+    pgl.texParameteri(PGL.TEXTURE_CUBE_MAP, PGL.TEXTURE_WRAP_R, PGL.CLAMP_TO_EDGE);
+    pgl.texParameteri(PGL.TEXTURE_CUBE_MAP, PGL.TEXTURE_MIN_FILTER, PGL.LINEAR);
+    pgl.texParameteri(PGL.TEXTURE_CUBE_MAP, PGL.TEXTURE_MAG_FILTER, PGL.LINEAR);
+
+
+    //Load in textures
+    let cubemapName = "cubemap_texture";
+    let glTextureId = IntBuffer.allocate(1);
+
+    let textureNames = ["posx.jpg", "negx.jpg", "posy.jpg", "negy.jpg", "posz.jpg", "negz.jpg"];
+    if(textures == undefined) {
+      textures = new Array(textureNames.length);
+      for (let i = 0; i < textures.length; i++) {
+        textures[i] = p.loadImage("assets" + "/Storforsen/" + textureNames[i]);
+
+        //Uncomment this for smoother reflections. This downsamples the textures
+        // textures[i].resize(20,20);
+      }
+    }
+
+    // put the textures in the cubeMap
+    for (let i = 0; i < textures.length; i++) {
+      let w = textures[i].width;
+      let h = textures[i].height;
+      textures[i].loadPixels();
+      let pix = textures[i].pixels;
+      pgl.texImage2D(PGL.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, PGL.RGBA, w, h, 0, PGL.RGBA, PGL.UNSIGNED_BYTE, IntBuffer.wrap(pix));
+    }
+
+    p.endPGL();
+
+    // Load cubemap shader.
+    cubemapShader = p.loadShader("assets" + "/cubemap.frag", "assets" + "/cubemap.vert");
+    cubemapShader.set("cubemap", 1);
+
+    cubemapbackShader = p.loadShader("assets" + "/cubemapback.frag", "assets" + "/cubemapback.vert");
+    cubemapbackShader.set("cubemap", 1);
+  }
 
   p.setup = function () {
     p.createCanvas(800, 800);
@@ -32,9 +87,17 @@ var s = function (p) {
     p.smooth();
 
     points = new Array(context.depthWidth() * context.depthHeight());
+    normals = new Array(context.depthWidth() * context.depthHeight());
     for (let i = 0; i < points.length; i++) {
       points[i] = 0.0;
+      normals[i] = {x: 0, y: 0, z: 2.0};
     }
+
+    cam = new Packages.peasy.PeasyCam(pApplet.that, 300);
+    loadShader();
+
+    meshb = p.createShape(p.BOX, 3000);
+    meshb.disableStyle();
   }
 
   p.draw = function () {
@@ -46,55 +109,92 @@ var s = function (p) {
 
     p.background(0, 0, 0);
 
-    p.translate(p.width / 2, p.height / 2, 0);
+    // p.shader(cubemapbackShader);
+    // p.fill(255);
+    // p.noStroke();
+    // p.shape(meshb);
+  
+    p.shader(cubemapShader);
+
+    cubemapShader.set("uLightColor", 1.0, 1.0, 1.0);
+    cubemapShader.set("uBaseColor", 0.5, 0.0, 0.0);
+
+    cubemapShader.set("uSpecular", 0.99);
+    cubemapShader.set("uLightRadius", 500.0);
+    cubemapShader.set("uExposure", 2.0);
+    cubemapShader.set("uGamma", 0.6);
+
+    cubemapShader.set("vLightPosition", 0, 100, 0);
+
+    // p.translate(p.width / 2, p.height / 2, 0);
     p.rotateX(rotX);
-    p.rotateY(rotY);
     p.scale(zoomF);
 
     let depthMap = context.depthMap();
-    let steps = 4;  // to speed up the drawing, draw every third point
+    let steps = 5;  // to speed up the drawing, draw every third point
     let index;
     let realWorldPoint;
 
-    p.translate(0, 0, -1000);  // set the rotation center of the scene 1000 infront of the camera
-
-    p.stroke(255);
-    p.strokeWeight(5);
+    p.translate(0, 0, 500);  // set the rotation center of the scene 1000 infront of the camera
+    // p.rotateY(p.millis() * 0.0002);
+    p.noStroke();
+    // p.stroke(0);
 
     let realWorldMap = context.depthMapRealWorld();
-
-    for (let y = 0; y < context.depthHeight(); y += steps) {
-      for (let x = 0; x < context.depthWidth(); x += steps) {
-        index = x + y * context.depthWidth();
+    let h = context.depthHeight();
+    let w = context.depthWidth();
+    for (let y = 0; y < h; y += steps) {
+      for (let x = 0; x < w; x += steps) {
+        index = x + y * w;
         if (depthMap[index] > 0 && depthMap[index] < 1000) {
-          points[index] = p.lerp(points[index], realWorldMap[index].z, 0.05);
+          points[index] = p.lerp(points[index], realWorldMap[index].z, 0.2);
         }
       }
     }
+    for (let y = steps; y < h; y += steps) {
+      for (let x = steps; x < w; x += steps) {
+        index = x + y * w;
+        normals[index].x = points[index] - points[index - steps];
+        normals[index].y = points[index] - points[index - steps * w];
+      }
+    }
     // draw pointcloud
-    p.noFill();
-    for (let y = 0; y < context.depthHeight() - steps; y += steps) {
-      for (let x = 0; x < context.depthWidth() - steps; x += steps) {
-        index = x + y * context.depthWidth();
+    mesh = p.createShape();
+
+    p.fill(255);
+    mesh.beginShape(p.TRIANGLES);
+    for (let y = 0; y < h - steps; y += steps) {
+      for (let x = 0; x < w - steps; x += steps) {
+        index = x + y * w;
         if (depthMap[index] > 10 && depthMap[index] < 1000) {
           if (depthMap[index + steps] > 10 &&
             depthMap[index + steps] < 1000) {
-            if (depthMap[index + steps * context.depthWidth()] > 10 &&
-              depthMap[index + steps * context.depthWidth()] < 1000) {
-              if (depthMap[index + steps * context.depthWidth() + steps] > 10 &&
-                depthMap[index + steps * context.depthWidth() + steps] < 1000) {
+            if (depthMap[index + steps * w] > 10 &&
+              depthMap[index + steps * w] < 1000) {
+              if (depthMap[index + steps * w + steps] > 10 &&
+                depthMap[index + steps * w + steps] < 1000) {
                 // draw the projected point
                 //        realWorldPoint = context.depthMapRealWorld()[index];
-                p.beginShape(p.TRIANGLE_STRIP);
-                realWorldPoint = realWorldMap[index + steps * context.depthWidth()];
-                p.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * context.depthWidth()]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.beginShape(p.TRIANGLES);
+                realWorldPoint = realWorldMap[index + steps * w];
+                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * w]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.normal(normals[index + steps * w].x, normals[index + steps * w].y, normals[index + steps * w].z);
                 realWorldPoint = realWorldMap[index];
-                p.vertex(realWorldPoint.x, realWorldPoint.y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                realWorldPoint = realWorldMap[index + steps * context.depthWidth() + steps];
-                p.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * context.depthWidth() + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.normal(normals[index].x, normals[index].y, normals[index].z);
+                realWorldPoint = realWorldMap[index + steps * w + steps];
+                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.normal(normals[index + steps * w + steps].x, normals[index + steps * w + steps].y, normals[index + steps * w + steps].z);
+
+                realWorldPoint = realWorldMap[index + steps * w + steps];
+                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.normal(normals[index + steps * w + steps].x, normals[index + steps * w + steps].y, normals[index + steps * w + steps].z);
+                realWorldPoint = realWorldMap[index];
+                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.normal(normals[index].x, normals[index].y, normals[index].z);
                 realWorldPoint = realWorldMap[index + steps];
-                p.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                p.endShape();
+                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+                mesh.normal(normals[index + steps].x, normals[index + steps].y, normals[index + steps].z);
               }
             }
           }
@@ -102,7 +202,10 @@ var s = function (p) {
         //println("x: " + x + " y: " + y);
       }
     }
-
+    mesh.endShape();
+    mesh.disableStyle();
+    p.shape(mesh);
+    p.resetShader();
     // draw the kinect cam
     // context.drawCamFrustum();
   }
