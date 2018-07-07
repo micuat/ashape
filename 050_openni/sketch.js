@@ -2,6 +2,7 @@ if (context == undefined) {
   var context = null;
 }
 
+var doLoadShader = false;
 var cubemapShader, cubemapbackShader, textures;
 
 var s = function (p) {
@@ -13,6 +14,7 @@ var s = function (p) {
   let points, normals;
   let mesh, meshb;
   let cam;
+  let zDefault = 500.0;
 
   function loadShader() {
     let PGL = Packages.processing.opengl.PGL;
@@ -84,17 +86,17 @@ var s = function (p) {
     }
 
     p.stroke(255, 255, 255);
-    p.smooth();
 
     points = new Array(context.depthWidth() * context.depthHeight());
     normals = new Array(context.depthWidth() * context.depthHeight());
     for (let i = 0; i < points.length; i++) {
-      points[i] = 0.0;
-      normals[i] = {x: 0, y: 0, z: 2.0};
+      points[i] = zDefault;
+      normals[i] = {x: 0, y: 0, z: 50.0};
     }
 
     cam = new Packages.peasy.PeasyCam(pApplet.that, 300);
-    loadShader();
+    if(doLoadShader)
+      loadShader();
 
     meshb = p.createShape(p.BOX, 3000);
     meshb.disableStyle();
@@ -131,7 +133,7 @@ var s = function (p) {
     p.scale(zoomF);
 
     let depthMap = context.depthMap();
-    let steps = 5;  // to speed up the drawing, draw every third point
+    let steps = 10;  // to speed up the drawing, draw every third point
     let index;
     let realWorldPoint;
 
@@ -146,8 +148,11 @@ var s = function (p) {
     for (let y = 0; y < h; y += steps) {
       for (let x = 0; x < w; x += steps) {
         index = x + y * w;
-        if (depthMap[index] > 0 && depthMap[index] < 1000) {
-          points[index] = p.lerp(points[index], realWorldMap[index].z, 0.2);
+        if (depthMap[index] > 0 && depthMap[index] < zDefault) {
+          points[index] = p.lerp(points[index], realWorldMap[index].z, 0.1);
+        }
+        else {
+          points[index] = p.lerp(points[index], zDefault, 0.1);
         }
       }
     }
@@ -155,51 +160,37 @@ var s = function (p) {
       for (let x = steps; x < w; x += steps) {
         index = x + y * w;
         normals[index].x = points[index] - points[index - steps];
-        normals[index].y = points[index] - points[index - steps * w];
+        normals[index].y = -points[index] + points[index - steps * w];
       }
     }
     // draw pointcloud
     mesh = p.createShape();
 
     p.fill(255);
+    p.scale(1, -1);
+    p.translate(-w / 2, -h / 2);
     mesh.beginShape(p.TRIANGLES);
+
+    function setNormal (vec) {
+      mesh.normal(vec.x, vec.y, vec.z);
+    }
     for (let y = 0; y < h - steps; y += steps) {
       for (let x = 0; x < w - steps; x += steps) {
         index = x + y * w;
-        if (depthMap[index] > 10 && depthMap[index] < 1000) {
-          if (depthMap[index + steps] > 10 &&
-            depthMap[index + steps] < 1000) {
-            if (depthMap[index + steps * w] > 10 &&
-              depthMap[index + steps * w] < 1000) {
-              if (depthMap[index + steps * w + steps] > 10 &&
-                depthMap[index + steps * w + steps] < 1000) {
-                // draw the projected point
-                //        realWorldPoint = context.depthMapRealWorld()[index];
-                mesh.beginShape(p.TRIANGLES);
-                realWorldPoint = realWorldMap[index + steps * w];
-                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * w]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                mesh.normal(normals[index + steps * w].x, normals[index + steps * w].y, normals[index + steps * w].z);
-                realWorldPoint = realWorldMap[index];
-                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                mesh.normal(normals[index].x, normals[index].y, normals[index].z);
-                realWorldPoint = realWorldMap[index + steps * w + steps];
-                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                mesh.normal(normals[index + steps * w + steps].x, normals[index + steps * w + steps].y, normals[index + steps * w + steps].z);
+        mesh.beginShape(p.TRIANGLES);
+        mesh.vertex(x, y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index]);
+        mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index + steps * w + steps]);
+        mesh.vertex(x, y + steps, points[index + steps * w]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index + steps * w]);
 
-                realWorldPoint = realWorldMap[index + steps * w + steps];
-                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                mesh.normal(normals[index + steps * w + steps].x, normals[index + steps * w + steps].y, normals[index + steps * w + steps].z);
-                realWorldPoint = realWorldMap[index];
-                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                mesh.normal(normals[index].x, normals[index].y, normals[index].z);
-                realWorldPoint = realWorldMap[index + steps];
-                mesh.vertex(realWorldPoint.x, realWorldPoint.y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-                mesh.normal(normals[index + steps].x, normals[index + steps].y, normals[index + steps].z);
-              }
-            }
-          }
-        }
-        //println("x: " + x + " y: " + y);
+        mesh.vertex(x, y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index]);
+        mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index + steps * w + steps]);
+        mesh.vertex(x + steps, y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index + steps]);
       }
     }
     mesh.endShape();
