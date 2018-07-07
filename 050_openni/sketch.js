@@ -14,7 +14,7 @@ var s = function (p) {
   let points, normals;
   let mesh, meshb;
   let cam;
-  let zDefault = 1000.0;
+  let zDefault = 700.0;
 
   function loadShader() {
     let PGL = Packages.processing.opengl.PGL;
@@ -119,13 +119,13 @@ var s = function (p) {
     p.shader(cubemapShader);
 
     cubemapShader.set("uLightColor", 1.0, 1.0, 1.0);
-    cubemapShader.set("uBaseColor", 0.5, 0.5, 0.5);
+    cubemapShader.set("uBaseColor", 0.75, 0.75, 0.75);
 
     cubemapShader.set("uRoughness", 0.02);
     cubemapShader.set("uMetallic", 0.97);
-    cubemapShader.set("uSpecular", 0.15);
+    cubemapShader.set("uSpecular", 0.5);
     cubemapShader.set("uLightRadius", 100.0);
-    cubemapShader.set("uExposure", 10.0);
+    cubemapShader.set("uExposure", 30.0);
     cubemapShader.set("uGamma", 2.0);
 
     cubemapShader.set("vLightPosition", 0, 100, 100);
@@ -136,7 +136,7 @@ var s = function (p) {
     p.scale(zoomF);
 
     let depthMap = context.depthMap();
-    let steps = 5;  // to speed up the drawing, draw every third point
+    let steps = 7;  // to speed up the drawing, draw every third point
     let xOffset = 80;
     let index;
     let realWorldPoint;
@@ -149,24 +149,22 @@ var s = function (p) {
     let realWorldMap = context.depthMapRealWorld();
     let h = context.depthHeight();
     let w = context.depthWidth();
-    let R = 70;//p.map(Math.sin(p.millis() * 0.0005), -1, 1, 50, 100);
-    let Z = p.map(Math.sin(p.millis() * 0.0005), -1, 1, 300, 800);
-    for (let y = 0; y < h; y += steps) {
+    for (let y = steps; y < h - steps; y += steps) {
       for (let x = xOffset; x < w - xOffset; x += steps) {
         index = x + y * w;
         let zTarget = zDefault;
-        let r = p.dist(x, y, w/2, h/2);
-        if (false&&r < R) {
-          let z = p.map(r, 0, R, Z, zDefault);
-          if(depthMap[index] > 0 && depthMap[index] < zDefault)
-            z = Math.min(z, depthMap[index]);
-          points[index] = p.lerp(points[index], z, 0.1);
+        let found = false;
+        for(let i = 0; i < steps; i+=2) {
+          for(let j = 0; j < steps; j+=2) {
+            if (depthMap[index - i * w - j] > 0 && depthMap[index - i * w - j] < zDefault) {
+              points[index] = p.lerp(points[index], depthMap[index - i * w - j], 0.05);
+              found = true;
+              break;
+            }
+          }
         }
-        else if (depthMap[index] > 0 && depthMap[index] < zDefault) {
-          points[index] = p.lerp(points[index], depthMap[index], 0.1);
-        }
-        else {
-          points[index] = p.lerp(points[index], zTarget, 0.1);
+        if (!found) {
+          points[index] = p.lerp(points[index], zTarget, 0.05);
         }
       }
     }
@@ -187,7 +185,7 @@ var s = function (p) {
     function setNormal (vec) {
       mesh.normal(vec.x, vec.y, vec.z);
     }
-    for (let y = 0; y < h - steps; y += steps) {
+    for (let y = steps; y < h - steps; y += steps) {
       mesh.beginShape(p.TRIANGLE_STRIP);
       for (let x = xOffset; x < w - xOffset; x += steps) {
         index = x + y * w;

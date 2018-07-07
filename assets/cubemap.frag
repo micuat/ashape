@@ -125,8 +125,8 @@ void main(void) {
 	color					= pow( color, vec3( 1.0f / uGamma ) );
 	
   float alpha = vertColor.a;
-  if(vertOrg.z > 990.0) {
-    alpha *= (1000.0 - vertOrg.z) * 0.1;
+  if(vertOrg.z > 690.0) {
+    alpha *= (700.0 - vertOrg.z) * 0.1;
   }
   gl_FragColor = vec4(color * lightIntensity, alpha); 
 }
