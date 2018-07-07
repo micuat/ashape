@@ -62,6 +62,7 @@ var s = function (p) {
 
   p.setup = function () {
     p.createCanvas(800, 800);
+    p.frameRate(30);
 
     if (context == null) {
       context = new Packages.SimpleOpenNI.SimpleOpenNI(p.that);
@@ -135,7 +136,8 @@ var s = function (p) {
     p.scale(zoomF);
 
     let depthMap = context.depthMap();
-    let steps = 7;  // to speed up the drawing, draw every third point
+    let steps = 5;  // to speed up the drawing, draw every third point
+    let xOffset = 80;
     let index;
     let realWorldPoint;
 
@@ -147,24 +149,32 @@ var s = function (p) {
     let realWorldMap = context.depthMapRealWorld();
     let h = context.depthHeight();
     let w = context.depthWidth();
+    let R = 70;//p.map(Math.sin(p.millis() * 0.0005), -1, 1, 50, 100);
+    let Z = p.map(Math.sin(p.millis() * 0.0005), -1, 1, 300, 800);
     for (let y = 0; y < h; y += steps) {
-      for (let x = 0; x < w; x += steps) {
+      for (let x = xOffset; x < w - xOffset; x += steps) {
         index = x + y * w;
         let zTarget = zDefault;
         let r = p.dist(x, y, w/2, h/2);
-        if (depthMap[index] > 0 && depthMap[index] < zDefault) {
+        if (false&&r < R) {
+          let z = p.map(r, 0, R, Z, zDefault);
+          if(depthMap[index] > 0 && depthMap[index] < zDefault)
+            z = Math.min(z, depthMap[index]);
+          points[index] = p.lerp(points[index], z, 0.1);
+        }
+        else if (depthMap[index] > 0 && depthMap[index] < zDefault) {
           points[index] = p.lerp(points[index], depthMap[index], 0.1);
         }
         else {
-          points[index] = p.lerp(points[index], zTarget, 0.04);
+          points[index] = p.lerp(points[index], zTarget, 0.1);
         }
       }
     }
     for (let y = steps; y < h - steps; y += steps) {
-      for (let x = steps; x < w - steps; x += steps) {
+      for (let x = xOffset; x < w - xOffset; x += steps) {
         index = x + y * w;
-        normals[index].x = (points[index - steps] - points[index]);
-        normals[index].y = (points[index + steps * w] - points[index]);
+        normals[index].x = -(points[index - steps] - points[index]);
+        normals[index].y = -(points[index + steps * w] - points[index]);
       }
     }
     // draw pointcloud
@@ -173,24 +183,23 @@ var s = function (p) {
     p.fill(255);
     p.scale(1, -1);
     p.translate(-w / 2, -h / 2);
-    mesh.beginShape(p.TRIANGLES);
 
     function setNormal (vec) {
       mesh.normal(vec.x, vec.y, vec.z);
     }
     for (let y = 0; y < h - steps; y += steps) {
       mesh.beginShape(p.TRIANGLE_STRIP);
-      for (let x = 0; x < w - steps; x += steps) {
+      for (let x = xOffset; x < w - xOffset; x += steps) {
         index = x + y * w;
         mesh.vertex(x, y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
         setNormal(normals[index]);
         mesh.vertex(x, y + steps, points[index + steps * w]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
         setNormal(normals[index + steps * w]);
 
-        mesh.vertex(x + steps, y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-        setNormal(normals[index + steps]);
-        mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-        setNormal(normals[index + steps * w + steps]);
+        // mesh.vertex(x + steps, y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        // setNormal(normals[index + steps]);
+        // mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        // setNormal(normals[index + steps * w + steps]);
       }
       mesh.endShape();
     }

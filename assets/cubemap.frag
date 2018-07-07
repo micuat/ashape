@@ -91,7 +91,6 @@ float getAttenuation( vec3 lightPosition, vec3 vertexPosition, float lightRadius
 }
 
 void main(void) {
-  if(vertOrg.z > 990.0) discard;
 	vec3 N                  = normalize( vNormal );
 	vec3 L                  = normalize( vLightPosition - vPosition );
 	vec3 V                  = normalize( -vPosition );
@@ -125,5 +124,9 @@ void main(void) {
 	color					= color * whiteScale;
 	color					= pow( color, vec3( 1.0f / uGamma ) );
 	
-  gl_FragColor = vec4(color * lightIntensity, vertColor.a); 
+  float alpha = vertColor.a;
+  if(vertOrg.z > 990.0) {
+    alpha *= (1000.0 - vertOrg.z) * 0.1;
+  }
+  gl_FragColor = vec4(color * lightIntensity, alpha); 
 }
