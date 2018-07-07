@@ -14,7 +14,7 @@ var s = function (p) {
   let points, normals;
   let mesh, meshb;
   let cam;
-  let zDefault = 500.0;
+  let zDefault = 1000.0;
 
   function loadShader() {
     let PGL = Packages.processing.opengl.PGL;
@@ -58,13 +58,6 @@ var s = function (p) {
     }
 
     p.endPGL();
-
-    // Load cubemap shader.
-    cubemapShader = p.loadShader("assets" + "/cubemap.frag", "assets" + "/cubemap.vert");
-    cubemapShader.set("cubemap", 1);
-
-    cubemapbackShader = p.loadShader("assets" + "/cubemapback.frag", "assets" + "/cubemapback.vert");
-    cubemapbackShader.set("cubemap", 1);
   }
 
   p.setup = function () {
@@ -91,19 +84,25 @@ var s = function (p) {
     normals = new Array(context.depthWidth() * context.depthHeight());
     for (let i = 0; i < points.length; i++) {
       points[i] = zDefault;
-      normals[i] = {x: 0, y: 0, z: 50.0};
+      normals[i] = {x: 0, y: 0, z: 500.0};
     }
 
     cam = new Packages.peasy.PeasyCam(pApplet.that, 300);
     if(doLoadShader)
       loadShader();
+    // Load cubemap shader.
+    cubemapShader = p.loadShader("assets" + "/cubemap.frag", "assets" + "/cubemap.vert");
+    cubemapShader.set("cubemap", 1);
+
+    cubemapbackShader = p.loadShader("assets" + "/cubemapback.frag", "assets" + "/cubemapback.vert");
+    cubemapbackShader.set("cubemap", 1);
 
     meshb = p.createShape(p.BOX, 3000);
     meshb.disableStyle();
   }
 
   p.draw = function () {
-    p.perspective(p.radians(15),
+    p.perspective(p.radians(12),
       parseFloat(p.width) / parseFloat(p.height),
       10, 150000);
     // update the cam
@@ -121,19 +120,21 @@ var s = function (p) {
     cubemapShader.set("uLightColor", 1.0, 1.0, 1.0);
     cubemapShader.set("uBaseColor", 0.5, 0.0, 0.0);
 
-    cubemapShader.set("uSpecular", 0.99);
-    cubemapShader.set("uLightRadius", 500.0);
-    cubemapShader.set("uExposure", 2.0);
-    cubemapShader.set("uGamma", 0.6);
+    cubemapShader.set("uRoughness", 0.02);
+    cubemapShader.set("uMetallic", 0.9);
+    cubemapShader.set("uSpecular", 0.9);
+    cubemapShader.set("uLightRadius", 100.0);
+    cubemapShader.set("uExposure", 10.0);
+    cubemapShader.set("uGamma", 2.0);
 
-    cubemapShader.set("vLightPosition", 0, 100, 0);
+    cubemapShader.set("vLightPosition", 0, 100, 100);
 
     // p.translate(p.width / 2, p.height / 2, 0);
     p.rotateX(rotX);
     p.scale(zoomF);
 
     let depthMap = context.depthMap();
-    let steps = 10;  // to speed up the drawing, draw every third point
+    let steps = 7;  // to speed up the drawing, draw every third point
     let index;
     let realWorldPoint;
 
@@ -148,19 +149,20 @@ var s = function (p) {
     for (let y = 0; y < h; y += steps) {
       for (let x = 0; x < w; x += steps) {
         index = x + y * w;
+        let zTarget = zDefault;
         if (depthMap[index] > 0 && depthMap[index] < zDefault) {
-          points[index] = p.lerp(points[index], realWorldMap[index].z, 0.1);
+          points[index] = p.lerp(points[index], depthMap[index], 0.1);
         }
         else {
-          points[index] = p.lerp(points[index], zDefault, 0.1);
+          points[index] = p.lerp(points[index], zTarget, 0.04);
         }
       }
     }
-    for (let y = steps; y < h; y += steps) {
-      for (let x = steps; x < w; x += steps) {
+    for (let y = steps; y < h - steps; y += steps) {
+      for (let x = steps; x < w - steps; x += steps) {
         index = x + y * w;
-        normals[index].x = points[index] - points[index - steps];
-        normals[index].y = -points[index] + points[index - steps * w];
+        normals[index].x = (points[index - steps] -  points[index + steps]);
+        normals[index].y = -(points[index - steps * w] - points[index + steps * w]);
       }
     }
     // draw pointcloud
@@ -175,25 +177,21 @@ var s = function (p) {
       mesh.normal(vec.x, vec.y, vec.z);
     }
     for (let y = 0; y < h - steps; y += steps) {
+      mesh.beginShape(p.TRIANGLE_STRIP);
       for (let x = 0; x < w - steps; x += steps) {
         index = x + y * w;
-        mesh.beginShape(p.TRIANGLES);
         mesh.vertex(x, y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
         setNormal(normals[index]);
-        mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-        setNormal(normals[index + steps * w + steps]);
         mesh.vertex(x, y + steps, points[index + steps * w]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
         setNormal(normals[index + steps * w]);
 
-        mesh.vertex(x, y, points[index]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-        setNormal(normals[index]);
-        mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
-        setNormal(normals[index + steps * w + steps]);
         mesh.vertex(x + steps, y, points[index + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
         setNormal(normals[index + steps]);
+        mesh.vertex(x + steps, y + steps, points[index + steps * w + steps]);  // make realworld z negative, in the 3d drawing coordsystem +z points in the direction of the eye
+        setNormal(normals[index + steps * w + steps]);
       }
+      mesh.endShape();
     }
-    mesh.endShape();
     mesh.disableStyle();
     p.shape(mesh);
     p.resetShader();
