@@ -14,10 +14,14 @@ uniform float uLightRadius;
 uniform float uExposure;
 uniform float uGamma;
 
+uniform samplerCube cubemap;
+varying vec3 reflectDir;
+
 varying vec4 vertColor;
 varying vec3 vNormal;
 varying vec3 vPosition;
 varying float lightIntensity; 
+varying vec3 vertOrg;
 
 // OrenNayar diffuse
 vec3 getDiffuse( vec3 diffuseColor, float roughness4, float NoV, float NoL, float VoH )
@@ -86,7 +90,8 @@ float getAttenuation( vec3 lightPosition, vec3 vertexPosition, float lightRadius
 	return attenuation;
 }
 
-void main(void) { 
+void main(void) {
+  if(vertOrg.z > 990.0) discard;
 	vec3 N                  = normalize( vNormal );
 	vec3 L                  = normalize( vLightPosition - vPosition );
 	vec3 V                  = normalize( -vPosition );
@@ -96,9 +101,12 @@ void main(void) {
 	float VoH				= saturate( dot( V, H ) );
 	float NoH				= saturate( dot( N, H ) );
 
+  vec3 reflectColor = vec3(textureCube(cubemap, vec3(reflectDir.x, -reflectDir.y, reflectDir.z)));
+  vec3 matColor = mix(uBaseColor, reflectColor, 1.0 - uRoughness);
+
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
-	vec3 diffuseColor		= uBaseColor - uBaseColor * uMetallic;
-  vec3 specularColor = mix( vec3( 0.08 * uSpecular ), uBaseColor, uMetallic );
+	vec3 diffuseColor		= matColor - matColor * uMetallic;
+  vec3 specularColor = mix( vec3( 0.08 * uSpecular ), matColor, uMetallic );
 	float distribution		= getNormalDistribution( uRoughness, NoH );
 	vec3 fresnel			= getFresnel( specularColor, VoH );
 	float geom				= getGeometricShadowing( uRoughness, NoV, NoL, VoH, L, V );
@@ -119,11 +127,3 @@ void main(void) {
 	
   gl_FragColor = vec4(color * lightIntensity, vertColor.a); 
 }
-
-// uniform samplerCube cubemap;
-// varying vec3 reflectDir;
-
-// void main() {
-//   vec3 color = vec3(textureCube(cubemap, vec3(reflectDir.x, -reflectDir.y, reflectDir.z)));
-//   gl_FragColor = vec4(color, 1.0);      
-// }

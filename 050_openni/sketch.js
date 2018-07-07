@@ -84,7 +84,7 @@ var s = function (p) {
     normals = new Array(context.depthWidth() * context.depthHeight());
     for (let i = 0; i < points.length; i++) {
       points[i] = zDefault;
-      normals[i] = {x: 0, y: 0, z: 500.0};
+      normals[i] = {x: 0, y: 0, z: 10.0};
     }
 
     cam = new Packages.peasy.PeasyCam(pApplet.that, 300);
@@ -118,17 +118,18 @@ var s = function (p) {
     p.shader(cubemapShader);
 
     cubemapShader.set("uLightColor", 1.0, 1.0, 1.0);
-    cubemapShader.set("uBaseColor", 0.5, 0.0, 0.0);
+    cubemapShader.set("uBaseColor", 0.5, 0.5, 0.5);
 
     cubemapShader.set("uRoughness", 0.02);
-    cubemapShader.set("uMetallic", 0.9);
-    cubemapShader.set("uSpecular", 0.9);
+    cubemapShader.set("uMetallic", 0.97);
+    cubemapShader.set("uSpecular", 0.15);
     cubemapShader.set("uLightRadius", 100.0);
     cubemapShader.set("uExposure", 10.0);
     cubemapShader.set("uGamma", 2.0);
 
     cubemapShader.set("vLightPosition", 0, 100, 100);
 
+    p.push();
     // p.translate(p.width / 2, p.height / 2, 0);
     p.rotateX(rotX);
     p.scale(zoomF);
@@ -150,6 +151,7 @@ var s = function (p) {
       for (let x = 0; x < w; x += steps) {
         index = x + y * w;
         let zTarget = zDefault;
+        let r = p.dist(x, y, w/2, h/2);
         if (depthMap[index] > 0 && depthMap[index] < zDefault) {
           points[index] = p.lerp(points[index], depthMap[index], 0.1);
         }
@@ -161,8 +163,8 @@ var s = function (p) {
     for (let y = steps; y < h - steps; y += steps) {
       for (let x = steps; x < w - steps; x += steps) {
         index = x + y * w;
-        normals[index].x = (points[index - steps] -  points[index + steps]);
-        normals[index].y = -(points[index - steps * w] - points[index + steps * w]);
+        normals[index].x = (points[index - steps] - points[index]);
+        normals[index].y = (points[index + steps * w] - points[index]);
       }
     }
     // draw pointcloud
@@ -194,6 +196,7 @@ var s = function (p) {
     }
     mesh.disableStyle();
     p.shape(mesh);
+    p.pop();
     p.resetShader();
     // draw the kinect cam
     // context.drawCamFrustum();
