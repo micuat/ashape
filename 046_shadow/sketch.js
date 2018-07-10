@@ -103,7 +103,7 @@ var s = function (p) {
     p.background(0);
 
     var lightAngle = p.frameCount * 0.02;
-    lightDir.set(Math.sin(lightAngle) * 160, 100, Math.cos(lightAngle) * 160);
+    lightDir.set(Math.sin(lightAngle) * 160, 200, Math.cos(lightAngle) * 160);
 
     // Render shadow pass
     shadowMap.beginDraw();

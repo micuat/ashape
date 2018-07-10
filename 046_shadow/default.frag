@@ -104,7 +104,7 @@ void main(void) {
 
 	// deduce the diffuse and specular color from the baseColor and how metallic the material is
 	vec3 uBaseColor = vertColor.rgb;
-	float uMetallic = 0.9;
+	float uMetallic = 0.8;
 	vec3 diffuseColor		= uBaseColor - uBaseColor * uMetallic;
   float uRoughness = 0.1;
   vec3 uLightColor = vec3(1.0);
@@ -119,7 +119,7 @@ void main(void) {
 
 	vec3 color				= uLightColor * ( diffuse + specular );
 
-	float uLightRadius = 100.0;
+	float uLightRadius = 300.0;
 	float attenuation		= getAttenuation( vLightPosition, vPosition, uLightRadius );
 	color					*= attenuation;
 	
@@ -128,7 +128,7 @@ void main(void) {
 	const float whiteInputLevel = 10.0;
 	vec3 whiteScale			= 1.0 / Uncharted2Tonemap( vec3( whiteInputLevel ) );
 	color					= color * whiteScale;
-	float uGamma = 3.0;
+	float uGamma = 1.0;
 	color					= pow( color, vec3( 1.0f / uGamma ) );
 	
   // Project shadow coords, needed for a perspective light matrix (spotlight)

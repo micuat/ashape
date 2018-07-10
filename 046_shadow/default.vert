@@ -21,5 +21,5 @@ void main() {
   shadowCoord = shadowTransform * (vPosition4 + vec4(vNormal, 0.0)); // Normal bias removes the shadow acne
   lightIntensity = 0.5 + dot(-lightDirection, vNormal) * 0.5; 
   gl_Position = transform * vertex;
-  vPosition = gl_Position.xyz / gl_Position.w;
+  vPosition = vPosition4.xyz / vPosition4.w;//gl_Position.xyz / gl_Position.w;
 }
