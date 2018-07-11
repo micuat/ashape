@@ -30,7 +30,7 @@ import toxi.physics3d.behaviors.*;
 import toxi.physics3d.constraints.*;
 import toxi.geom.*;
 
-import SimpleOpenNI.*;
+// import SimpleOpenNI.*;
 
 import oscP5.*;
 import netP5.*;
@@ -58,7 +58,7 @@ public PApplet that = this;
 
 public Icosahedron ico = new Icosahedron(75);
 
-public String folderName = "046_shadow";
+public String folderName = "054_equation";
 
 boolean libInited = false;
 
