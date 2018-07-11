@@ -9,6 +9,7 @@ var s = function (p) {
   let name;
   let n = 8 + 1;
   let currents = [];
+  let doWire = true;
   function initShadowPass() {
     shadowMap = p.createGraphics(2048, 2048, p.P3D);
     shadowMap.noSmooth(); // Antialiasing on the shadowMap leads to weird artifacts
@@ -82,7 +83,12 @@ var s = function (p) {
     defaultShader.set("shadowMap", shadowMap);
   }
 
-  function renderLandscape(canvas) {
+  function renderLandscape(canvas, doShadow) {
+    let angle = (p.frameCount % 120) / 120.0;
+    angle = Math.pow(angle, 2.0);
+    angle *= Math.PI * 2;
+    p.rotateY(angle + Math.PI * -0.25);
+
     let theta = p.frameCount / 30.0 * 0.25 * 2 * Math.PI;
     for(let m = 0; m < 4; m++) {
       for(let i = 0; i < n; i++) {
@@ -95,21 +101,36 @@ var s = function (p) {
           for(let k in currents) {
             if(i * n + j == currents[k]) {
               // l *= 1.0 - p.pow(1.0 - p.map(Math.cos(theta), -1, 1, 0, 1), 4.0);
-              canvas.rotateZ(p.pow((theta % Math.PI) / Math.PI, 4.0) * Math.PI * 0.5);
+              // canvas.rotateZ(p.pow((theta % Math.PI) / Math.PI, 4.0) * Math.PI * 0.5);
               break;
             }
           }
 
           let t = 1.0;
-          canvas.box(l, t, t);
-          canvas.box(t, l, t);
-          canvas.box(t, t, l);
+  
+          if(doWire && !doShadow) {
+            canvas.line(-l/2, 0, 0, l/2, 0, 0);
+            canvas.line(0, -l/2, 0, 0, l/2, 0);
+            canvas.line(0, 0, -l/2, 0, 0, l/2);
+          }
+          else {
+            canvas.box(l, t, t);
+            canvas.box(t, l, t);
+            canvas.box(t, t, l);
+          }
           canvas.popMatrix();
         }
       }
     }
-    canvas.fill(255, 255);
-    canvas.box(600, 5, 600);
+    if(doWire) {
+      canvas.noStroke();
+      canvas.fill(255, 255);
+      canvas.box(600, 5, 600);
+    }
+    else {
+      canvas.fill(255, 255);
+      canvas.box(600, 5, 600);
+    }
   }
 
   p.draw = function () {
@@ -120,30 +141,39 @@ var s = function (p) {
         currents.push(p.floor(p.random(n * n)));
       }
     }
-    
-    p.background(0);
 
-    var lightAngle = Math.PI * 0.5;//p.frameCount * 0.02;
-    lightDir.set(Math.sin(lightAngle) * 160, 160, Math.cos(lightAngle) * 160);
+    if (p.frameCount % 240 < 120) {
+      doWire = true;
+    }
+    else {
+      doWire = false;
+    }
+
+    var lightAngle = Math.PI * 0.25;//p.frameCount * 0.02;
+    lightDir.set(Math.sin(lightAngle) * 160, 50, Math.cos(lightAngle) * 160);
 
     // Render shadow pass
     shadowMap.beginDraw();
     shadowMap.camera(lightDir.x, lightDir.y, lightDir.z, 0, 0, 0, 0, 1, 0);
     shadowMap.background(255, 255, 255, 255); // Will set the depth to 1.0 (maximum depth)
-    renderLandscape(shadowMap);
+    renderLandscape(shadowMap, true);
     shadowMap.endDraw();
     // shadowMap.updatePixels();
 
+    // Render default pass
     // Update the shadow transformation matrix and send it, the light
     // direction normal and the shadow map to the default shader.
     updateDefaultShader();
-
-    // Render default pass
     p.background(255, 255);
-    p.noStroke();
-    p.camera(0.0, 100.0, -200.0, 0.0, 100.0, 200, 0, -1, 0);
-    p.rotateY(0.1);
-    renderLandscape(p.g);
+    if (doWire){
+      p.stroke(0);
+    }
+    else {
+      p.noStroke();
+    }
+    p.camera(0.0, 150.0, -300.0, 0.0, 50.0, 0, 0, -1, 0);
+
+    renderLandscape(p.g, false);
 
     // Render light source
     p.pushMatrix();
