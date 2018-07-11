@@ -92,10 +92,6 @@ var s = function (p) {
         p.stroke(0);
         p.strokeWeight(1);
         if(a == aclosest) {
-          if('1' <= p.key && p.key <= '8') {
-            anchors[p.key - '0' - 1] = a;
-            p.key = 0;
-          }
           p.fill(0);
         }
         else {
@@ -247,30 +243,49 @@ var s = function (p) {
     }
     updateAgent(agent, 0, false);
     updateAgent(wagent, 128, true);
-    
-    if(command.length > 2) command = command.substring(command.length - 2);
+        
+    p.fill(0)
+    let comorth = "ortho";
+    if(!orth) comorth = "nonortho"
+    p.text("command:" + command + comorth, 0, 380);
+  }
+
+  p.keyPressed = function () {
+    if(p.key == 'o') {
+      orth = !orth;
+      return;
+    }
+
+    let aclosest;
+    let alength = 10000;
+    for each(r in grids) {
+      for each(a in r) {
+        let xdiff = a.x - (p.mouseX - p.width/2);
+        let ydiff = a.y - (p.mouseY - p.height/2);
+        let length = Math.abs(xdiff) + Math.abs(ydiff);
+        if(length < alength) {
+          alength = length;
+          aclosest = a;
+        }
+      }
+    }
+    if('1' <= p.key && p.key <= '8') {
+      anchors[p.key - '0' - 1] = aclosest;
+      return;
+    }
+
     let commandn = -1;
     let commandlist = ["q", "w", "e", "r", "t", "y", "u", "i"];
-    count = 0;
+    let count = 0;
     for each(cl in commandlist) {
       if(p.key == cl) {
         commandn = count;
         command += String(commandn);
-        p.key = 0;
         break;
       }
       count++;
     }
-    
-    p.fill(0)
-    let comorth = "ortho";
-    if(!orth) comorth = "nonortho"
-    p.text("command:" + command + comorth, -0, 0);
-  }
-
-  p.keyPressed = function () {
-    if(p.key == 'o') orth = !orth;
-    print(orth)
+    if(command.length > 2) command = command.substring(command.length - 2);
   }
 
   // p.mousePressed = function () {
