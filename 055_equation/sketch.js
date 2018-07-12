@@ -70,8 +70,10 @@ var s = function (p) {
     
     let aclosest;
     let alength = 10000;
-    for each(r in grids) {
-      for each(a in r) {
+    for(let i in grids) {
+      let r = grids[i];
+      for(let j in r) {
+        let a = r[j];
         let xdiff = a.x - (p.mouseX - p.width/2);
         let ydiff = a.y - (p.mouseY - p.height/2);
         let length = Math.abs(xdiff) + Math.abs(ydiff);
@@ -82,8 +84,10 @@ var s = function (p) {
       }
     }
     
-    for each(r in grids) {
-      for each(a in r) {
+    for(let i in grids) {
+      let r = grids[i];
+      for(let j in r) {
+        let a = r[j];
         p.pushMatrix();
         a.x = (a.j - 3.5) * 100;
         a.y = (a.i - 3.5) * 100;
@@ -116,7 +120,8 @@ var s = function (p) {
     // swap them!
     if(command.length == 2) {
       let count = 0;
-      for each(a in anchors) {
+      for(let i in anchors) {
+        let a = anchors[i];
         let x = a.x;
         let y = a.y;
         if(String(a.i) == command.charAt(0)) {
@@ -145,7 +150,8 @@ var s = function (p) {
     }
     
     let count = 0;
-    for each(a in anchors) {
+    for(let i in anchors) {
+      let a = anchors[i];
       p.fill(128);
       p.noStroke();
       p.ellipse(a.x, a.y, 20, 20);
@@ -258,8 +264,10 @@ var s = function (p) {
 
     let aclosest;
     let alength = 10000;
-    for each(r in grids) {
-      for each(a in r) {
+    for(let i in grids) {
+      let r = grids[i];
+      for(let j in r) {
+        let a = r[j];
         let xdiff = a.x - (p.mouseX - p.width/2);
         let ydiff = a.y - (p.mouseY - p.height/2);
         let length = Math.abs(xdiff) + Math.abs(ydiff);
@@ -276,8 +284,8 @@ var s = function (p) {
 
     let commandn = -1;
     let commandlist = ["q", "w", "e", "r", "t", "y", "u", "i"];
-    let count = 0;
-    for each(cl in commandlist) {
+    for(let count in commandlist) {
+      let cl = commandlist[count];
       if(p.key == cl) {
         commandn = count;
         command += String(commandn);
@@ -287,19 +295,6 @@ var s = function (p) {
     }
     if(command.length > 2) command = command.substring(command.length - 2);
   }
-
-  // p.mousePressed = function () {
-  //   path = [];
-  //   path.push({x: p.mouseX - p.width / 2, y: p.mouseY - p.height / 2});
-  // }
-
-  // p.mouseDragged = function () {
-  //   path.push({x: p.mouseX - p.width / 2, y: p.mouseY - p.height / 2});
-  // }
-
-  // p.mouseReleased = function () {
-  //   path.push({x: p.mouseX - p.width / 2, y: p.mouseY - p.height / 2});
-  // }
 };
 
 var p055 = new p5(s);
