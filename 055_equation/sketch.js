@@ -56,15 +56,27 @@ var s = function (p) {
       // print(p.frameRate());
     }
 
-    p.background(255);
+    p.background(0);
     
+    p.camera(0, 200, 800, 0, 0, 0, 0, 1, 0);
+    // p.pointLight(255, 255, 255, 0, 0, 400);
+    // p.directionalLight(100, 100, 100, 0, 0, -1);
+    p.push();
+    p.noStroke();
+    p.translate(0, 0, -20);
+    p.fill(255);
+    p.box(800, 800, 10);
+    p.pop();
+
+    p.translate(-p.width / 2, -p.height / 2);
+
     let bpm = 60;
     let hz = bpm / 60;
     let seq = (p.millis() / 1000 * hz) % 7;
     let phase = seq - Math.floor(seq);
     
     p.translate(p.width/2, p.height/2);
-    p.colorMode(3, 255);
+    p.colorMode(p.RGB, 255);
     
     p.stroke(128)
     
@@ -155,7 +167,7 @@ var s = function (p) {
       p.fill(128);
       p.noStroke();
       p.ellipse(a.x, a.y, 20, 20);
-      p.fill(128, 255, 255);
+      p.fill(128);
       p.pushMatrix();
       p.translate(10, 10);
       p.ellipse(a.wx, a.wy, 20, 20);
@@ -163,12 +175,18 @@ var s = function (p) {
     
       p.stroke(0);
       p.textSize(24);
+      p.push();
       p.fill(0);
-      p.text(String(count + 1), a.x + 10, a.y);
+      p.translate(a.x + 10, a.y);
+      p.rotateX(Math.PI / -2);
+      p.text(String(count + 1), 0, 0);
+      p.pop();
       p.pushMatrix();
       p.translate(10, 10);
-      p.fill(128, 255, 255);
-      p.text(String(count + 1), a.wx + 10, a.wy);
+      p.fill(128);
+      p.translate(a.wx + 10, a.wy);
+      p.rotateX(Math.PI / -2);
+      p.text(String(count + 1), 0, 0);
       p.popMatrix();
     
       p.strokeWeight(3);
@@ -177,7 +195,7 @@ var s = function (p) {
         let an = anchors[count+1];
         p.line(a.x, a.y, an.x, an.y);
       }
-      p.stroke(128, 255, 255, 50);
+      p.stroke(128, 50);
       p.pushMatrix();
       p.translate(10, 10);
       if(count < anchors.length - 1) {
@@ -233,8 +251,12 @@ var s = function (p) {
       }
       p.noFill();
       p.stroke(color);
-      if(isTransposed) p.stroke(128, 255, 255);
-      p.ellipse(agent.x, agent.y, 30, 30);
+      if(isTransposed) p.stroke(128);
+      p.push();
+      p.translate(agent.x, agent.y, 0);
+      p.sphere(30);
+      p.pop();
+      // p.ellipse(agent.x, agent.y, 30, 30);
     
       p.pushMatrix();
       p.translate(agent.x, agent.y);
@@ -248,7 +270,7 @@ var s = function (p) {
       p.popMatrix();
     }
     updateAgent(agent, 0, false);
-    updateAgent(wagent, 128, true);
+    updateAgent(wagent, 0, true);
         
     p.fill(0)
     let comorth = "ortho";
