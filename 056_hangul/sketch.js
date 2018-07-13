@@ -107,6 +107,11 @@ var s = function (p) {
     let z = 50 - 50 * Math.pow(cos, 32.0);
     return {x: x, z: z, cx: 0, cz: -50};
   }
+  function vowel_eu (angle) {
+    let x = 75 * Math.sin(angle);
+    let z = 50;
+    return {x: x, z: z, cx: 0, cz: -50};
+  }
   function vowel_oo (angle) {
     let cos = Math.cos(angle);
     if(cos < 0) cos = 0;
@@ -114,7 +119,7 @@ var s = function (p) {
     let z = 50 + 50 * Math.pow(cos, 32.0);
     return {x: x, z: z, cx: 0, cz: -50};
   }
-  let vowels = [vowel_a, vowel_i, vowel_o, vowel_oo];
+  let vowels = [vowel_a, vowel_i, vowel_o, vowel_eu, vowel_oo];
   let vowel0, vowel1;
 
   function consonant_ng (angle, pos) {
@@ -122,12 +127,18 @@ var s = function (p) {
     let z = 50 * Math.sin(angle) + pos.cz;
     return {x: x, z: z};
   }
+  function consonant_s (angle, pos) {
+    let cos = Math.cos(angle);
+    let x = 50 * Math.sin(angle) + pos.cx;
+    let z = 75.0/2 + 75 * -Math.pow(cos, 4.0) + pos.cz;
+    return {x: x, z: z};
+  }
   function consonant_m (angle, pos) {
     let x = 50 * Math.pow(Math.abs(Math.cos(angle)), 0.5) * (Math.cos(angle)>0?1:-1) + pos.cx;
     let z = 50 * Math.pow(Math.abs(Math.sin(angle)), 0.5) * (Math.sin(angle)>0?1:-1) + pos.cz;
     return {x: x, z: z};
   }
-  let consonants = [consonant_m, consonant_ng];
+  let consonants = [consonant_ng, consonant_s, consonant_m];
   let consonant0, consonant1;
 
   function renderLandscape(canvas, shader) {
@@ -144,7 +155,8 @@ var s = function (p) {
     canvas.fill(120.0, 120.0, 0, 255);
     for(let i = 0; i < n; i++) {
       let phase = Math.PI * i / n * 2.0;
-      let angle = p.millis() * 0.005 + phase;
+      let angle = p.millis() * 0.0025 * (i + 1);
+      // let angle = p.millis() * 0.005 + phase;
 
       let pos0 = vowel0(angle);
       let pos1 = vowel1(angle);
