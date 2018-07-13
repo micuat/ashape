@@ -100,25 +100,33 @@ var s = function (p) {
       if(cos < 0) cos = 0;
       let x = 50 + 50 * Math.pow(cos, 32.0);
       let z = 100 * Math.sin(angle);
-      return {x: x, z: z};
+      return {x: x, z: z, cx: -50, cz: 0};
     }
-    function consonant_ng (angle) {
-      let x = 50 * Math.cos(angle) - 50;
-      let z = 50 * Math.sin(angle);
+    function vowel_o (angle) {
+      let cos = Math.cos(angle);
+      if(cos < 0) cos = 0;
+      let x = 75 * Math.sin(angle);
+      let z = 50 - 50 * Math.pow(cos, 32.0);
+      return {x: x, z: z, cx: 0, cz: -50};
+    }
+    function consonant_ng (angle, pos) {
+      let x = 50 * Math.cos(angle) + pos.cx;
+      let z = 50 * Math.sin(angle) + pos.cz;
       return {x: x, z: z};
     }
 
+    canvas.fill(120.0, 120.0, 0, 255);
     for(let i = 0; i < n; i++) {
       let phase = Math.PI * i / n * 2.0;
       let angle = p.millis() * 0.0025 + phase;
-      let pos = consonant_ng(angle);
-      canvas.fill(120.0, 120.0, 0, 255);
+
+      let pos = vowel_o(angle);
       canvas.pushMatrix();
       canvas.translate(pos.x, -12, pos.z);
       canvas.sphere(12);
       canvas.popMatrix();
 
-      pos = vowel_a(angle);
+      pos = consonant_ng(angle, pos);
       canvas.pushMatrix();
       canvas.translate(pos.x, -12, pos.z);
       canvas.sphere(12);
