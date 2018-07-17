@@ -5,6 +5,7 @@ var s = function (p) {
   let ys = [];
   let pg;
   p.setup = function () {
+    name = p.folderName;
     p.createCanvas(800, 800);
     p.frameRate(30);
 
@@ -22,13 +23,14 @@ var s = function (p) {
   let letterFunction;
   let rotationFunction;
   let pgBackgroundFunction;
+  let doDoubleDraw;
   p.draw = function () {
     p.background(0);
 
     // let t = p.millis() * 0.001;
-    let t = (p.frameCount / 30.0);
+    let t = (p.frameCount / 60.0);
 
-    if (curveFunctionX == null || p.frameCount % (30 * 4) == 0) {
+    if (curveFunctionX == null || p.frameCount % (30 * 8) == 0) {
       let funcs = [
         function (i) { return Math.cos(i / 10 * Math.PI * 0.5) }
         ,
@@ -97,12 +99,15 @@ var s = function (p) {
       ];
       pgBackgroundFunction = p.random(funcs);
 
+      doDoubleDraw = p.random(1.0) > 0.7 ? true : false;
+
       pg.beginDraw();
       pg.background(0);
       pg.endDraw();
 
       for (let i = 0; i < 21; i++) {
-        xs[i] = ys[i] = 0;
+        xs[i] = {n: 0, b: 0};
+        ys[i] = {n: 0, b: 0};
       }
     }
 
@@ -111,28 +116,38 @@ var s = function (p) {
     pg.endDraw();
 
     if (t % 4 >= 1) {
-      let n = 300;
+      let n = 280;
       let dn = n / 10;
       for (let i = -10; i <= 10; i++) {
         let dl = n * curveFunctionX(i);
         // dl = Math.min(dl, 180);
-        xs[i + 10] = p.lerp(xs[i + 10], dl, 0.1);
+        xs[i + 10].n = p.lerp(xs[i + 10].n, dl, 0.1);
+        xs[i + 10].b = p.lerp(xs[i + 10].b, p.random(-200, 200), 0.1);
       }
       for (let j = -10; j <= 10; j++) {
         let dl = n * curveFunctionY(j);
-        ys[j + 10] = p.lerp(ys[j + 10], dl, 0.1);
+        ys[j + 10].n = p.lerp(ys[j + 10].n, dl, 0.1);
+        ys[j + 10].b = p.lerp(ys[j + 10].b, dl*0, 0.1);
       }
       function drawSystem(broken) {
         for (let i = -10; i <= 10; i++) {
-          let i1 = p.floor(p.random(-10, 11));
-          if (!broken || p.random(1) < 0.95) i1 = i;
-          let dl0 = xs[i + 10];
-          let dl1 = xs[i1 + 10];
-          pg.line(-dl0, i * dn, dl1, i1 * dn);
-        }
-        for (let j = -10; j <= 10; j++) {
-          let dl = ys[j + 10];
-          pg.line(j * dn, -dl, j * dn, dl);
+          let dlx0, dly1;
+          let i0 = i, i1 = i;
+          if (!broken || p.random(1) > ((t - 1.0) % 4.0) * 0.02) {
+            dlx0 = xs[i0 + 10].n;
+            dlx1 = xs[i1 + 10].n;
+            dly0 = ys[i0 + 10].n;
+            dly1 = ys[i1 + 10].n;
+            }
+          else {
+            i1 = Math.floor(p.map(p.noise(i * 0.1, t * 2.0), 0.0, 1.0, -10.0, 11.0));
+            dlx0 = xs[i0 + 10].n;
+            dlx1 = xs[i1 + 10].n;
+            dly0 = ys[i0 + 10].n;
+            dly1 = ys[i1 + 10].n;
+          }
+          pg.line(-dlx0, i0 * dn, dlx1, i1 * dn);
+          pg.line(i0 * dn, -dly0, i1 * dn, dly1);
         }
       }
 
@@ -140,17 +155,30 @@ var s = function (p) {
       pg.stroke(255);
       pg.translate(pg.width / 2, pg.height / 2);
       rotationFunction((t - 1) % 4.0);
-      pg.pushMatrix();
-      pg.translate(-pg.width / 4, 0);
-      pg.rotateY(Math.PI * 0.25);
-      drawSystem(false);
-      pg.popMatrix();
 
-      pg.pushMatrix();
-      pg.translate(pg.width / 4, 0);
-      pg.rotateY(Math.PI * -0.25);
-      drawSystem(true);
-      pg.popMatrix();
+      if(doDoubleDraw)
+        pg.translate(0, 0, -pg.width / 4);
+      for(let i = 0; i < 2; i++) {
+        pg.pushMatrix();
+        pg.translate(-pg.width / 4, 0);
+        pg.rotateY(Math.PI * 0.25);
+        drawSystem(false);
+        pg.popMatrix();
+
+        pg.pushMatrix();
+        pg.translate(pg.width / 4, 0);
+        pg.rotateY(Math.PI * -0.25);
+        drawSystem(true);
+        pg.popMatrix();
+
+        if(doDoubleDraw) {
+          pg.translate(0, 0, pg.width / 2);
+          pg.scale(1, 1, -1);
+        }
+        else {
+          break;
+        }
+      }
       pg.endDraw();
     }
 
@@ -161,7 +189,10 @@ var s = function (p) {
     if (t % 4 < 2) {
       p.push();
       p.translate(0, 30);
-      p.fill(255, 255 * Math.min(1.0, (t % 2.0) * 8.0));
+      let tweena = Math.min(1.0, p.map(t % 2.0, 0.0, 0.5, 0.0, 1.0));
+      if(t % 4.0 > 1.0)
+      tweena = Math.max(0.0, p.map(t % 2.0, 1.5, 2.0, 1.0, 0.0));
+      p.fill(255, 255 * tweena);
       // p.strokeWeight(1);
 
       let grp0, grp1;
@@ -177,8 +208,8 @@ var s = function (p) {
       }
       p.textFont(font, 60);
       p.textAlign(p.CENTER, p.CENTER);
-      p.text('wresting equations', 0, -50);
-      p.text('from the event', 0, 50);
+      p.text('wresting equations', 0, -80);
+      p.text('from the event', 0, 20);
       // p.translate(0, -50);
       // drawText(grp0);
       // p.translate(0, 100);
@@ -186,7 +217,11 @@ var s = function (p) {
       p.pop();
     }
     p.pop();
+
+    if(p.frameCount % 60 == 0) {
+      // p.saveFrame(name + "/capture/######.png");
+    }
   }
 };
 
-var p058 = new p5(s);
+var p059 = new p5(s);
