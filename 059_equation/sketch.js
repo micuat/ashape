@@ -3,6 +3,7 @@ var s = function (p) {
   let rfont, rfontc;
   let xs = [];
   let ys = [];
+  let rotation;
   p.setup = function () {
     p.createCanvas(800, 800);
     p.frameRate(30);
@@ -55,6 +56,15 @@ var s = function (p) {
         }
       ];
       letterFunction = p.random(funcs);
+
+      funcs = [
+        function (t) { }
+        ,
+        function (t) { p.rotateZ(Math.pow(Math.min(t * 2.0, 1.0), 0.25) * Math.PI * 0.5); }
+        ,
+        function (t) { p.rotateY(Math.pow(Math.min(t, 1.0), 0.5) * Math.PI); }
+      ];
+      rotation = p.random(funcs);
 
       for (let i = 0; i < 21; i++) {
         xs[i] = ys[i] = 0;
@@ -111,6 +121,7 @@ var s = function (p) {
           p.line(j * dn, -dl, j * dn, dl);
         }
       }
+      rotation((t - 1) % 4.0);
       p.push();
       p.translate(-p.width / 4, 0);
       p.rotateY(Math.PI * 0.25);
