@@ -15,6 +15,7 @@ var s = function (p) {
   let nonRelevant = {i: 0, k: 0};
   let direction0;
   let direction1;
+  let sequencing;
   function initShadowPass() {
     shadowMap = p.createGraphics(2048, 2048, p.P3D);
     shadowMap.noSmooth(); // Antialiasing on the shadowMap leads to weird artifacts
@@ -98,6 +99,8 @@ var s = function (p) {
 
     // Send the shadowmap to the default shader
     defaultShader.set("shadowMap", shadowMap);
+
+    defaultShader.set("iTime", t % 4.0);
   }
 
   function renderLandscape(canvas, isShadow) {
@@ -116,14 +119,14 @@ var s = function (p) {
       for(let i = -3; i <= 3; i++) {
         canvas.pushMatrix();
         canvas.translate(i * 50, 0);//, (i + k + 10) % 2 == 0 ? 10 : 0);
-        let tween = ((t + i / 8) % 4.0) / 4.0;
+        let tween = ((t + sequencing(i)) % 4.0) / 4.0;
         if(tween < 0.5) {
           tween = 0.5 - Math.pow(1.0 - tween * 2.0, 4.0) * 0.5;
         }
         else {
           tween = 0.5 + Math.pow((tween - 0.5) * 2.0, 4.0) * 0.5;
         }
-        let y0 = p.map(tween, 0, 1, 1200, -1200);
+        let y0 = p.map(tween, 0, 1, 1400, -1400);
 
         canvas.beginShape(p.TRIANGLE_STRIP);
         let w = 10 / 2;
@@ -153,22 +156,23 @@ var s = function (p) {
   }
 
   p.draw = function () {
-    t = (getCount() / 30.0);
-    if (getCount() % (30 * 4) == 0) {
+    t = (getCount() / 60.0);
+    if (getCount() % (60 * 4) == 0) {
       nonRelevant.i = Math.floor(p.random(-3, 4));
       nonRelevant.k = Math.floor(p.random(0, 2));
-    }
-    if (direction0 == null || getCount() % (30 * 4) == 0) {
+
       let funcs = [
         function (pg) {},
         function (pg) { pg.scale(1, -1, 1) }       
-      ]
+      ];
       direction0 = p.random(funcs);
       direction1 = p.random(funcs);
-    }
 
-    if (t % 4 >= 1) {
-
+      sequencing = p.random([
+        function (i) {return i / 8},
+        function (i) {return ((i % 2) / 4.0)},
+        function (i) {return (Math.cos(i / 8.0 * Math.PI) * 0.35)}
+      ]);
     }
 
     let cameraPosition = {x: 0.0, y: 0.0, z: 300.0};
@@ -220,7 +224,7 @@ var s = function (p) {
       // p.fill(128, 255 * tweena);
       p.fill(100, 0, 0, 255);
 
-      p.textFont(font, 20);
+      p.textFont(font, 25);
       p.textAlign(p.LEFT, p.CENTER);
       p.text('remainders in movement', -150, -60);
       p.text('an accusation to form:', -150, -30);
@@ -229,7 +233,7 @@ var s = function (p) {
     // }
     p.pop();
 
-    if(getCount() % 60 == 0) {
+    if(getCount() % 15 == 0) {
       // p.saveFrame(name + "/capture/######.png");
     }
 
