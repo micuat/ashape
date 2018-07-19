@@ -2,6 +2,7 @@ var s = function (p) {
   let name;
   let font;
   let pg;
+  let startFrame;
   p.setup = function () {
     name = p.folderName;
     p.createCanvas(800, 800);
@@ -9,13 +10,16 @@ var s = function (p) {
 
     font = p.createFont("assets/Avenir.otf", 60);
     pg = p.createGraphics(p.width, p.height, p.P3D);
+    startFrame = p.frameCount;
   }
+
+  function getCount() {return p.frameCount - startFrame};
 
   p.draw = function () {
     p.background(0);
-    let t = (p.frameCount / 60.0);
+    let t = (getCount() / 60.0);
 
-    if (p.frameCount % (30 * 8) == 0) {
+    if (getCount() % (30 * 8) == 0) {
       pg.beginDraw();
       pg.background(255);
       pg.endDraw();
@@ -23,6 +27,28 @@ var s = function (p) {
 
     if (t % 4 >= 1) {
       pg.beginDraw();
+      pg.noStroke();
+      pg.fill(128);
+      pg.lights();
+      pg.pushMatrix();
+      pg.translate(pg.width / 2, pg.height / 2);
+
+      for(let i = -4; i <= 4; i++) {
+        pg.pushMatrix();
+        pg.translate(i * 100, 0);
+
+        pg.beginShape(p.TRIANGLE_STRIP);
+        let w = 20 / 2;
+        for(let j = 0; j < 8; j++) {
+          pg.vertex(-w, 100 * j);
+          pg.vertex(w, 100 * j);
+        }
+        pg.endShape(p.CLOSE);
+
+        pg.popMatrix();
+      }
+
+      pg.popMatrix();
       pg.endDraw();
     }
 
@@ -47,7 +73,7 @@ var s = function (p) {
     }
     p.pop();
 
-    if(p.frameCount % 60 == 0) {
+    if(getCount() % 60 == 0) {
       // p.saveFrame(name + "/capture/######.png");
     }
   }
