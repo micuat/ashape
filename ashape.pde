@@ -58,7 +58,7 @@ public PApplet that = this;
 
 public Icosahedron ico = new Icosahedron(75);
 
-public String folderName = "060_equation";
+public String folderName = "061_dof";
 
 boolean libInited = false;
 
