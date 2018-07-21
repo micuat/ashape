@@ -131,6 +131,8 @@ var s = function (p) {
   let originRotateX;
   let originRotateZ;
   let noiseFunc;
+  let font;
+  let textPg;
 
   p.setup = function () {
     name = p.folderName;
@@ -144,6 +146,9 @@ var s = function (p) {
     dof.focus = p.map(p.mouseX, 0, p.width, -0.5, 1.5);
     dof.maxBlur = 0.02;
     dof.aperture = 0.05;
+
+    font = p.createFont("assets/Avenir.otf", 60);
+    textPg = p.createGraphics(p.width, p.height, p.P3D);
 
     startFrame = p.frameCount;
   }
@@ -240,6 +245,29 @@ var s = function (p) {
     dof.focus = Math.max(p.map(t % 4.0, 0, 1, 0.9, 0.65), 0.65);
 
     p.image(dof.getDest(), 0, 0);
+
+    // textPg.beginDraw();
+    // textPg.pushMatrix();
+    // textPg.translate(0, 0, -20);
+    // // if (t % 4 < 2) 
+    // {
+    //   textPg.pushMatrix();
+    //   textPg.translate(0, 30);
+    //   let tweena = Math.min(1.0, p.map(t % 2.0, 0.0, 0.5, 0.0, 1.0));
+    //   if(t % 4.0 > 1.0)
+    //   tweena = Math.max(0.0, p.map(t % 2.0, 1.5, 2.0, 1.0, 0.0));
+    //   // p.fill(128, 255 * tweena);
+    //   textPg.fill(100, 0, 0, 255);
+
+    //   textPg.textFont(font, 25);
+    //   textPg.textAlign(p.LEFT, p.CENTER);
+    //   textPg.text('remainders in movement', -150, -60);
+    //   textPg.text('an accusation to form:', -150, -30);
+    //   textPg.text('stay relevant, available', -150, 0);
+    //   textPg.popMatrix();
+    // }
+    // textPg.popMatrix();
+    // p.image(textPg, 0, 0);
 
     if (getCount() % 15 == 0) {
       // p.saveFrame(name + "/capture/######.png");
