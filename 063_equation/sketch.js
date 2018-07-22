@@ -99,6 +99,7 @@ var s = function (p) {
   let originRotateX;
   let originRotateZ;
   let noiseFunc;
+  let voxelFunc;
   let font;
   let textPg;
   let cycle = 8.0;
@@ -116,7 +117,7 @@ var s = function (p) {
     dof.maxDepth = 2000.0;
     dof.focus = p.map(p.mouseX, 0, p.width, -0.5, 1.5);
     dof.maxBlur = 0.01;
-    dof.aperture = 0.15;
+    dof.aperture = 0.05;
 
     font = p.createFont("assets/Avenir.otf", 60);
     textPg = p.createGraphics(p.width, p.height, p.P3D);
@@ -174,7 +175,7 @@ var s = function (p) {
     pg.pushMatrix();
     pg.translate(pg.width / 2, pg.height / 2, ribbonOrSS * 400);
     pg.noStroke();
-    pg.fill(180);
+    pg.fill(80);
     let ttween = Math.min(t % cycle, 1.0);
     ttween = 1.0 - Math.pow(1.0 - ttween, 4.0);
     let rx = p.lerp(originRotateX, targetRotateX, ttween);
@@ -182,32 +183,37 @@ var s = function (p) {
     pg.rotateX(rx);
     pg.rotateZ(rz);
 
-    let r = 400;
+    let r = 200;
 
     for (let i = -20; i <= 20; i++) {
       let lat = p.map(i, -20, 20, -p.HALF_PI, p.HALF_PI);
-      let r2 = supershape(lat, (t % cycle) * noiseFunc(t, i * 5.0, 0.1, true), 0.2, 1.7, 1.7);
+      let r2 = supershape(lat, m + i * 0.1, 0.2, 1.7, 1.7);
 
       pg.pushMatrix();
-      if(!ribbonOrSS) pg.translate(i * 20, 0, 0);//p.map(Math.sin(t + i * 0.8), -1, 1, 0, -1000));
-      pg.beginShape(p.TRIANGLE_STRIP);
+      if(ribbonOrSS) {
+        pg.rotateY(Math.PI * 0.25);
+        pg.beginShape(p.TRIANGLE_STRIP);
+      }
+      else {
+        pg.translate(i * 20, 0, 0);//p.map(Math.sin(t + i * 0.8), -1, 1, 0, -1000));
+        pg.beginShape(voxelFunc(0,0,0,0,true));
+      }
       for (let j = -20; j <= 20; j++) {
         if (i == iSelected && isSphere(j)) {
         }
         else {
           if (ribbonOrSS) {
-            let lon = p.map(j, -20, 20, -Math.PI, Math.PI);
+            let lon = p.map(j + t * 0.1, -20, 20, -Math.PI, Math.PI);
             let r1 = supershape(lon, m, 0.2, 1.7, 1.7);
             let x = r * r1 * Math.cos(lon) * r2 * Math.cos(lat);
             let y = r * r1 * Math.sin(lon) * r2 * Math.cos(lat);
             let z = r * r2 * Math.sin(lat);
-            pg.vertex(x, y, z - 2);
-            pg.vertex(x, y, z + 2);
+            pg.vertex(x, y, z - 5);
+            pg.vertex(x, y, z + 5);
           }
           else {
             let z = p.map(noiseFunc(t, i, j, false), 0, 1, -200, 400);
-            pg.vertex(-5, j * 20, z);
-            pg.vertex(5, j * 20, z);
+            voxelFunc(pg, 0, j * 20, z);
           }
         }
       }
@@ -267,6 +273,47 @@ var s = function (p) {
           return Math.sin(-tt + (-j * 0.1) + i * 0.2) * 0.25 + 0.25;
         }
       ]);
+
+      voxelFunc = p.random([
+        function (pg, x, y, z, mode) {
+          if(mode) return p.TRIANGLES;
+          pg.vertex(x-5, y, z);
+          pg.vertex(x+5, y, z);
+          pg.vertex(x-5, y + 10, z);
+
+          pg.vertex(x+5, y + 10, z);
+          pg.vertex(x-5, y + 10, z);
+          pg.vertex(x+5, y, z);
+        }
+        ,
+        function (pg, x, y, z, mode) {
+          if(mode) return p.TRIANGLES;
+          let yy = y;
+          let zz = z;
+          for(let k = 0; k < 2; k++) {
+            pg.vertex(x-5, yy, zz);
+            pg.vertex(x+5, yy, zz);
+            pg.vertex(x-5, yy, zz + 10);
+
+            pg.vertex(x+5, yy, zz + 10);
+            pg.vertex(x-5, yy, zz + 10);
+            pg.vertex(x+5, yy, zz);
+            zz += Math.min(Math.pow((t % cycle) * 0.25, 2.0), 1.0) * 20;
+          }
+        }
+        ,
+        function (pg, x, y, z, mode) {
+          if(mode) return p.TRIANGLE_STRIP;
+          pg.vertex(x-5, y, z);
+          pg.vertex(x+5, y, z);
+        }
+        ,
+        function (pg, x, y, z, mode) {
+          if(mode) return p.TRIANGLE_STRIP;
+          pg.vertex(x-2, y, z);
+          pg.vertex(x+2, y, z);
+        }
+      ]);
     }
 
     p.background(0);
@@ -281,7 +328,7 @@ var s = function (p) {
     //   dof.focus = 0.8;
     // }
 
-    dof.focus = ribbonOrSS ? 0.777 : 0.9825;
+    dof.focus = ribbonOrSS ? 0.817 : 0.9325;
     // dof.focus = p.map(p.mouseX, 0, p.width, -0.5, 1.5);
     // print(dof.focus)
 
