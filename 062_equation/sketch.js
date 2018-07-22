@@ -145,7 +145,7 @@ var s = function (p) {
     dof.maxDepth = 2000.0;
     dof.focus = p.map(p.mouseX, 0, p.width, -0.5, 1.5);
     dof.maxBlur = 0.02;
-    dof.aperture = 0.05;
+    dof.aperture = 0.15;
 
     font = p.createFont("assets/Avenir.otf", 60);
     textPg = p.createGraphics(p.width, p.height, p.P3D);
@@ -241,8 +241,8 @@ var s = function (p) {
 
     dof.draw();
 
-    // dof.focus = p.map(p.mouseX, 0, p.width, -0.5, 1.5);
-    dof.focus = Math.max(p.map(t % 4.0, 0, 1, 0.9, 0.65), 0.65);
+    dof.focus = 0.847;//p.map(p.mouseX, 0, p.width, -0.5, 1.5);
+    // dof.focus = Math.max(p.map(t % 4.0, 0, 1, 0.9, 0.65), 0.65);
 
     p.image(dof.getDest(), 0, 0);
 
@@ -270,11 +270,11 @@ var s = function (p) {
     // p.image(textPg, 0, 0);
 
     if (getCount() % 15 == 0) {
-      // p.saveFrame(name + "/capture/######.png");
+      p.saveFrame(name + "/capture/######.png");
     }
 
   }
 
 };
 
-var p061 = new p5(s);
+var p062 = new p5(s);
