@@ -1,15 +1,18 @@
+var rl, rr, rt, rb;
+
 function Particle(x, y) {
   this.pos = p068.createVector(x, y);
   // this.pos.mult(100);
   this.vel = p068.createVector(0, 0);
   this.acc = p068.createVector(0, 0);
-  this.r = 4;
+  this.R = 16;
+  this.r = 4; // render
 }
 
 Particle.prototype.attractedTo = function (other) {
 
   let d = p068.dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
-  if (d < this.r + other.r) {
+  if (d < this.R + other.R) {
     let attraction = p068.createVector(other.pos.x, other.pos.y);
     attraction.sub(this.pos);
     attraction.mult(1.0 / (attraction.mag() * attraction.mag() + 1.0));
@@ -20,10 +23,15 @@ Particle.prototype.attractedTo = function (other) {
 }
 
 Particle.prototype.move = function () {
-  // let attraction = p068.createVector(p068.width * 0.5, p068.height * 0.5);
-  // attraction.sub(this.pos);
-  // attraction.mult(100.0 / (attraction.mag() * attraction.mag() + 1.0));
-  // this.acc.add(attraction);
+  if(rl < this.pos.x && rr > this.pos.x
+     && rt < this.pos.y && rb > this.pos.y)
+  {
+    let attraction = p068.createVector(p068.width * 0.5, p068.height * 0.5);
+    attraction.sub(this.pos);
+    attraction.mult(-10.0 / (attraction.mag() * attraction.mag() + 1.0));
+    this.acc.add(attraction);
+  }
+
   this.acc.x += p068.random(-1, 1) * 0.1;
   this.acc.y += p068.random(-1, 1) * 0.1;
   this.vel.add(this.acc);
@@ -220,7 +228,7 @@ var s = function (p) {
     font = p.createFont("assets/Avenir.otf", 60);
     startFrame = p.frameCount;
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 200; i++) {
       particles[i] = new Particle(p.random(p.width), p.random(p.height));
     }
   }
@@ -240,6 +248,18 @@ var s = function (p) {
 
     let boundary = new Rectangle(300, 200, 600, 400);
     let qtree = new QuadTree(boundary, 4);
+
+    p.stroke(255);
+    p.noFill();
+    let rcx = p.width * 0.5;
+    let rcy = p.height * 0.5;
+    let rhw = 100 * (Math.sin(t * Math.PI) * 0.5 + 0.5);
+    let rhh = 100;
+    rl = rcx - rhw;
+    rr = rcx + rhw;
+    rt = rcy - rhh;
+    rb = rcy + rhh;
+    p.rect(rl, rt, rr - rl, rb - rt);
 
     for (let i in particles) {
       let pt = particles[i];
