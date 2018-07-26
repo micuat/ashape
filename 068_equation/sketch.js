@@ -1,24 +1,55 @@
 function Particle(x, y) {
-  this.x = x;
-  this.y = y;
+  this.pos = p068.createVector(x, y);
+  // this.pos.mult(100);
+  this.vel = p068.createVector(0, 0);
+  this.acc = p068.createVector(0, 0);
   this.r = 4;
 }
 
-Particle.prototype.intersects = function (other) {
-  let d = p068.dist(this.x, this.y, other.x, other.y);
-  return (d < this.r + other.r);
+Particle.prototype.attractedTo = function (other) {
+
+  let d = p068.dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+  if (d < this.r + other.r) {
+    let attraction = p068.createVector(other.pos.x, other.pos.y);
+    attraction.sub(this.pos);
+    attraction.mult(1.0 / (attraction.mag() * attraction.mag() + 1.0));
+    this.acc.add(attraction);
+  }
+  else {
+  }
 }
 
 Particle.prototype.move = function () {
-  this.x += p068.random(-1, 1);
-  this.y += p068.random(-1, 1);
+  // let attraction = p068.createVector(p068.width * 0.5, p068.height * 0.5);
+  // attraction.sub(this.pos);
+  // attraction.mult(100.0 / (attraction.mag() * attraction.mag() + 1.0));
+  // this.acc.add(attraction);
+  this.acc.x += p068.random(-1, 1) * 0.1;
+  this.acc.y += p068.random(-1, 1) * 0.1;
+  this.vel.add(this.acc);
+  this.pos.add(this.vel);
+  this.vel.mult(0.9);
+  this.acc.mult(0.9);
+
+  if(this.pos.x < 0) {
+    this.pos.x += p068.width;
+  }
+  else if(this.pos.x > p068.width) {
+    this.pos.x -= p068.width;
+  }
+  if(this.pos.y < 0) {
+    this.pos.y += p068.height;
+  }
+  else if(this.pos.y > p068.height) {
+    this.pos.y -= p068.height;
+  }
 }
 
 Particle.prototype.render = function () {
   p068.noStroke();
   p068.fill(255);
 
-  p068.ellipse(this.x, this.y, this.r * 2);
+  p068.ellipse(this.pos.x, this.pos.y, this.r * 2);
 }
 
 function Point(x, y, userData) {
@@ -189,7 +220,7 @@ var s = function (p) {
     font = p.createFont("assets/Avenir.otf", 60);
     startFrame = p.frameCount;
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 100; i++) {
       particles[i] = new Particle(p.random(p.width), p.random(p.height));
     }
   }
@@ -212,7 +243,7 @@ var s = function (p) {
 
     for (let i in particles) {
       let pt = particles[i];
-      let point = new Point(pt.x, pt.y, pt);
+      let point = new Point(pt.pos.x, pt.pos.y, pt);
       qtree.insert(point);
 
 
@@ -222,13 +253,13 @@ var s = function (p) {
 
     for (let i in particles) {
       let pt = particles[i];
-      let range = new Circle(pt.x, pt.y, pt.r * 2);
+      let range = new Circle(pt.pos.x, pt.pos.y, pt.r * 2);
       let points = qtree.query(range);
       for (let i in points) {
         let point = points[i];
         let other = point.userData;
-        // for (let other of particles) {
-        if (pt !== other && pt.intersects(other)) {
+        if (pt !== other) {
+          pt.attractedTo(other);
         }
       }
     }
