@@ -1,4 +1,41 @@
-var rl, rr, rt, rb;
+function PRect() {
+  this.rl;
+  this.rr;
+  this.rt;
+  this.rb;
+}
+PRect.prototype.draw = function () {
+  p068.rect(this.rl, this.rt, this.rr - this.rl, this.rb - this.rt);
+}
+var rect = new PRect();
+
+function Arm() {
+  this.x0;
+  this.x1;
+  this.y0;
+  this.y1;
+  this.f;
+  this.a;
+  this.b;
+}
+Arm.prototype.update = function (pos) {
+  // y = ax + b
+  this.a = (this.y1 - this.y0) / (this.x0 - this.x1);
+  this.b = this.y0 - this.a * this.x0;
+}
+Arm.prototype.inside = function (pos) {
+  let d = 20;
+  if(pos.x < Math.min(this.x0, this.x1) - d) return false;
+  if(pos.x > Math.max(this.x0, this.x1) + d) return false;
+  if(pos.y < Math.min(this.y0, this.y1) - d) return false;
+  if(pos.y > Math.max(this.y0, this.y1) + d) return false;
+  let c = pos.y - this.a * pos.x - this.b;
+  return Math.abs(c) < d;
+}
+Arm.prototype.draw = function () {
+  p068.line(this.x0, this.y0, this.x1, this.y1);
+}
+var arm = new Arm();
 
 function Particle(x, y) {
   this.pos = p068.createVector(x, y);
@@ -15,7 +52,10 @@ Particle.prototype.attractedTo = function (other) {
   if (d < this.R + other.R) {
     let attraction = p068.createVector(other.pos.x, other.pos.y);
     attraction.sub(this.pos);
-    attraction.mult(1.0 / (attraction.mag() * attraction.mag() + 1.0));
+    attraction.mult(5.0 / (attraction.mag() * attraction.mag() + 10.0));
+    if(d < (this.R + other.R) * 0.1) {
+      attraction.mult(-0.1);
+    }
     this.acc.add(attraction);
   }
   else {
@@ -23,13 +63,8 @@ Particle.prototype.attractedTo = function (other) {
 }
 
 Particle.prototype.move = function () {
-  if(rl < this.pos.x && rr > this.pos.x
-     && rt < this.pos.y && rb > this.pos.y)
-  {
-    let attraction = p068.createVector(p068.width * 0.5, p068.height * 0.5);
-    attraction.sub(this.pos);
-    attraction.mult(-10.0 / (attraction.mag() * attraction.mag() + 1.0));
-    this.acc.add(attraction);
+  if(arm.inside(this.pos)) {
+    this.acc.add(arm.f);
   }
 
   this.acc.x += p068.random(-1, 1) * 0.1;
@@ -37,7 +72,7 @@ Particle.prototype.move = function () {
   this.vel.add(this.acc);
   this.pos.add(this.vel);
   this.vel.mult(0.9);
-  this.acc.mult(0.9);
+  this.acc.mult(0.7);
 
   if(this.pos.x < 0) {
     this.pos.x += p068.width;
@@ -251,15 +286,17 @@ var s = function (p) {
 
     p.stroke(255);
     p.noFill();
-    let rcx = p.width * 0.5;
+    let rcx = p.width * 0.5 + 200 * Math.cos(t * Math.PI / 2);
     let rcy = p.height * 0.5;
-    let rhw = 100 * (Math.sin(t * Math.PI) * 0.5 + 0.5);
-    let rhh = 100;
-    rl = rcx - rhw;
-    rr = rcx + rhw;
-    rt = rcy - rhh;
-    rb = rcy + rhh;
-    p.rect(rl, rt, rr - rl, rb - rt);
+    arm.x0 = rcx + 100 * Math.cos(t * Math.PI);
+    arm.y0 = rcy + 100 * Math.sin(t * Math.PI);
+    arm.x1 = rcx + 0;
+    arm.y1 = rcy + 0;
+    arm.f = p.createVector(0, 0)
+    arm.f.x = -10 * Math.sin(t * Math.PI);
+    arm.f.y = 10 * Math.cos(t * Math.PI);
+    arm.update();
+    arm.draw();
 
     for (let i in particles) {
       let pt = particles[i];
