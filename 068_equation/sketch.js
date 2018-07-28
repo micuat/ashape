@@ -1,42 +1,3 @@
-function PRect() {
-  this.rl;
-  this.rr;
-  this.rt;
-  this.rb;
-}
-PRect.prototype.draw = function () {
-  p068.rect(this.rl, this.rt, this.rr - this.rl, this.rb - this.rt);
-}
-var rect = new PRect();
-
-function Arm() {
-  this.x0;
-  this.x1;
-  this.y0;
-  this.y1;
-  this.f;
-  this.a;
-  this.b;
-}
-Arm.prototype.update = function (pos) {
-  // y = ax + b
-  this.a = (this.y1 - this.y0) / (this.x0 - this.x1);
-  this.b = this.y0 - this.a * this.x0;
-}
-Arm.prototype.inside = function (pos) {
-  let d = 20;
-  if(pos.x < Math.min(this.x0, this.x1) - d) return false;
-  if(pos.x > Math.max(this.x0, this.x1) + d) return false;
-  if(pos.y < Math.min(this.y0, this.y1) - d) return false;
-  if(pos.y > Math.max(this.y0, this.y1) + d) return false;
-  let c = pos.y - this.a * pos.x - this.b;
-  return Math.abs(c) < d;
-}
-Arm.prototype.draw = function () {
-  p068.line(this.x0, this.y0, this.x1, this.y1);
-}
-var arm = new Arm();
-
 function Particle(x, y) {
   this.pos = p068.createVector(x, y);
   // this.pos.mult(100);
@@ -52,9 +13,9 @@ Particle.prototype.attractedTo = function (other) {
   if (d < this.R + other.R) {
     let attraction = p068.createVector(other.pos.x, other.pos.y);
     attraction.sub(this.pos);
-    attraction.mult(5.0 / (attraction.mag() * attraction.mag() + 10.0));
+    attraction.mult(3.0 / (attraction.mag() + 100.0));
     if(d < (this.R + other.R) * 0.1) {
-      attraction.mult(-0.1);
+      attraction.mult(-0.01);
     }
     this.acc.add(attraction);
   }
@@ -63,9 +24,9 @@ Particle.prototype.attractedTo = function (other) {
 }
 
 Particle.prototype.move = function () {
-  if(arm.inside(this.pos)) {
-    this.acc.add(arm.f);
-  }
+  // if(arm.inside(this.pos)) {
+  //   this.acc.add(arm.f);
+  // }
 
   this.acc.x += p068.random(-1, 1) * 0.1;
   this.acc.y += p068.random(-1, 1) * 0.1;
@@ -93,6 +54,10 @@ Particle.prototype.render = function () {
   p068.fill(255);
 
   p068.ellipse(this.pos.x, this.pos.y, this.r * 2);
+  // p068.push();
+  // p068.translate(this.pos.x, this.pos.y);
+  // p068.sphere(this.r);
+  // p068.pop();
 }
 
 function Point(x, y, userData) {
@@ -185,6 +150,18 @@ function QuadTree(boundary, capacity) {
   this.divided = false;
 }
 
+QuadTree.prototype.draw = function () {
+  if(this.divided) {
+    this.northwest.draw();
+    this.northeast.draw();
+    this.southwest.draw();
+    this.southeast.draw();
+  }
+  else {
+    p068.rect(this.boundary.x, this.boundary.y, 2 * this.boundary.w, 2 * this.boundary.h);
+  }
+}
+
 QuadTree.prototype.subdivide = function () {
   let x = this.boundary.x;
   let y = this.boundary.y;
@@ -253,6 +230,7 @@ var s = function (p) {
   let startFrame;
   let cycle = 8.0;
   let particles = [];
+  let initPositions = [];
 
   p.setup = function () {
     name = p.folderName;
@@ -262,9 +240,10 @@ var s = function (p) {
 
     font = p.createFont("assets/Avenir.otf", 60);
     startFrame = p.frameCount;
-
-    for (let i = 0; i < 200; i++) {
-      particles[i] = new Particle(p.random(p.width), p.random(p.height));
+    for (let i = 0; i < 100; i++) {
+      // particles[i] = new Particle(p.random(p.width), p.random(p.height));
+      particles[i] = new Particle(0, 0);
+      initPositions[i] = {x: 0, y: 0};
     }
   }
 
@@ -273,59 +252,102 @@ var s = function (p) {
   p.draw = function () {
     t = (getCount() / 30.0);
     if (getCount() % (30 * cycle) == 0) {
-
+      // particles = [];
+      let x, y, w, h;
+      function assign() {
+        x = Math.floor(p.random(1, 7)) * 100 + 50;
+        y = Math.floor(p.random(1, 7)) * 100 + 50;
+        switch (Math.floor(p.random(0, 3))) {
+          case 0:
+          w = 25;
+          h = Math.floor(p.random(4, 8)) * 50;
+          break;
+          case 1:
+          w = Math.floor(p.random(4, 8)) * 50;
+          h = 25;
+          break;
+          case 2:
+          w = 3 * 50;
+          h = 3 * 50;
+          break;
+        }
+      }
+      assign();
+      let i = 0;
+      let res = 20;
+      for (; i < particles.length / 2; i++) {
+        // particles[i] = new Particle(p.random(p.width), p.random(p.height));
+        particles[i].pos.x = Math.floor(p.random(-w/2, w/2) / res) * res+x;
+        particles[i].pos.y = Math.floor(p.random(-h/2, h/2) / res) * res+y;
+        initPositions[i].x = particles[i].pos.x;
+        initPositions[i].y = particles[i].pos.y;
+      }
+      assign();
+      for (; i < particles.length; i++) {
+        // particles[i] = new Particle(p.random(p.width), p.random(p.height));
+        particles[i].pos.x = Math.floor(p.random(-w/2, w/2) / res) * res+x;
+        particles[i].pos.y = Math.floor(p.random(-h/2, h/2) / res) * res+y;
+        initPositions[i].x = particles[i].pos.x;
+        initPositions[i].y = particles[i].pos.y;
+      }
     }
 
     p.background(0);
 
-    p.background(0);
+    p.fill(128);
+    p.noStroke();
+    for(let i in initPositions) {
+      p.ellipse(initPositions[i].x, initPositions[i].y, 8);
+    }
 
-
-    let boundary = new Rectangle(300, 200, 600, 400);
+    let boundary = new Rectangle(400, 400, p.width, p.height);
     let qtree = new QuadTree(boundary, 4);
-
-    p.stroke(255);
-    p.noFill();
-    let rcx = p.width * 0.5 + 200 * Math.cos(t * Math.PI / 2);
-    let rcy = p.height * 0.5;
-    arm.x0 = rcx + 100 * Math.cos(t * Math.PI);
-    arm.y0 = rcy + 100 * Math.sin(t * Math.PI);
-    arm.x1 = rcx + 0;
-    arm.y1 = rcy + 0;
-    arm.f = p.createVector(0, 0)
-    arm.f.x = -10 * Math.sin(t * Math.PI);
-    arm.f.y = 10 * Math.cos(t * Math.PI);
-    arm.update();
-    arm.draw();
 
     for (let i in particles) {
       let pt = particles[i];
       let point = new Point(pt.pos.x, pt.pos.y, pt);
       qtree.insert(point);
 
-
-      pt.move();
+      if(t % cycle > 2.0) {
+        pt.move();
+      }
       pt.render();
     }
 
-    for (let i in particles) {
-      let pt = particles[i];
-      let range = new Circle(pt.pos.x, pt.pos.y, pt.r * 2);
-      let points = qtree.query(range);
-      for (let i in points) {
-        let point = points[i];
-        let other = point.userData;
-        if (pt !== other) {
-          pt.attractedTo(other);
+    p.rectMode(p.CENTER);
+    p.noFill();
+    p.stroke(255);
+    // qtree.draw();
+
+    if(t % cycle > 4.0) {
+      for (let i in particles) {
+        let pt = particles[i];
+        let range = new Circle(pt.pos.x, pt.pos.y, pt.r * 2);
+        let points = qtree.query(range);
+        for (let j in points) {
+          let point = points[j];
+          let other = point.userData;
+          if (pt !== other) {
+            pt.attractedTo(other);
+            // break;
+          }
         }
       }
     }
 
-    p.textFont(font, 32);
-    // p.text("Janine's text makes me think of structures", 0, 98);
-    // p.text("rather than colors or textures", 0, 98+l);
-    // p.text("more specifically it's the rules of structures", 0, 98+l*2);
-    // p.text("that can be implemented in several ways", 0, 98+l*3);
+    if(t % cycle < 2.0) {
+      let alpha = 1.0;
+      if(t % cycle > 1.0) {
+        alpha = p.map(t % cycle, 1, 2, 1, 0);
+      }
+      p.fill(255, 255 * alpha);
+      p.textFont(font, 48);
+      p.textAlign(p.CENTER);
+      p.translate(p.width / 2, p.height / 2);
+      p.text("Structures as the apparatus that", 0, -30);
+      p.text("allow the thought to form", 0, 30);
+    }
+
     if (getCount() % 15 == 0) {
       // p.saveFrame(name + "/capture/######.png");
     }
