@@ -227,7 +227,7 @@ vec2 map( in vec3 pos )
   vec4 stex = texture2D(u_depth, uv);
   vec4 obstex = texture2D(u_obstacle, uv);
   float depth;
-  float baseColor = 40.0;
+  float baseColor = 45.0;
   float col;
   if(obstex.r > 0.5) {
     depth = 0.1;
@@ -236,7 +236,8 @@ vec2 map( in vec3 pos )
     depth = stex.r+stex.g+stex.b;
     depth *= .1;
     depth = min(depth, 0.3);
-    col = baseColor - 40 * stex.r + 50 * stex.b;
+    col = baseColor - 20 * stex.r + 30 * stex.b;
+    if(depth < 0.005) col = mix(0.0, col, depth * 200.0);
   }
 
   vec2 res = vec2(sdBox(p, vec3(2.0, 2.0, 1.0+depth)), col);

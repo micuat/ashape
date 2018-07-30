@@ -26,38 +26,38 @@ private class MyFluidData implements DwFluid2D.FluidData {
     float px, py, radius, r, g, b, intensity, temperature;
 
     // add impulse: density + temperature
-    intensity = 1.0f;
+    intensity = 2.0f;
     px = 1*width/2;
-    py = 0;
-    radius = 100;
+    py = height/2-50;
+    radius = 50;
     r = 0.0f;
     g = 0.3f;
     b = 1.0f;
-    fluid.addDensity(px, py, radius, r, g, b, intensity);
 
     //if ((fluid.simulation_step) % 200 < 2 && t % 8.0 > 4.0) {
-    if (4.0 <= t % 8.0 && t % 8.0 < 6.5) {
-      temperature = 60f;
+    if (2.0 <= t % 8.0 && t % 8.0 < 6.5) {
+      fluid.addDensity(px, py, radius, r, g, b, intensity);
+      temperature = 50f;
       fluid.addTemperature(px, py, radius, temperature);
     }
 
     // add impulse: density + temperature
     float animator = sin(fluid.simulation_step*0.01f);
 
-    intensity = 1.0f;
+    intensity = 2.0f;
     px = 1*width/2f;
-    py = height-0;
-    radius = 100;
+    py = height/2f+50;
+    radius = 50;
     r = 1.0f;
     g = 0.0f;
     b = 0.3f;
-    fluid.addDensity(px, py, radius, r, g, b, intensity);
 
     temperature = animator * 50f;
     //fluid.addTemperature(px, py, radius, temperature);
     //if ((fluid.simulation_step+100) % 200 < 2 && t % 8.0 > 4.0) {
-    if (4.0 <= t % 8.0 && t % 8.0 < 6.5) {
-      temperature = -60f;
+    if (2.0 <= t % 8.0 && t % 8.0 < 6.5) {
+      fluid.addDensity(px, py, radius, r, g, b, intensity);
+      temperature = -50f;
       fluid.addTemperature(px, py, radius, temperature);
     }
   }
@@ -144,17 +144,17 @@ public void draw() {
   if (t % 8.0 == 0.0) {
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
-        if(mode == 0)
+        if (mode == 0)
           randThisSequence[i][j] = random(1.0);
-        else if(mode == 1)
+        else if (mode == 1)
           randThisSequence[i][j] = i % 2;
-        else if(mode == 2)
+        else if (mode == 2)
           randThisSequence[i][j] = (i / 2) % 2;
       }
     }
   }
 
-  if (t % 8.0 < 4.0) {
+  if (t % 8.0 < 2.0) {
     fluid.param.dissipation_density     = 0.25f;
     fluid.param.dissipation_velocity    = 0.0f;
     fluid.param.dissipation_temperature = 0.25f;
@@ -178,8 +178,11 @@ public void draw() {
   pg_obstacles.noStroke();
   pg_obstacles.fill(255);
 
-  for (int i = 2; i < 7; i++) {
+  for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
+      if (3 <= i && i <= 5 && 3 <= j && j <= 5) {
+        continue;
+      }
       pg_obstacles.pushMatrix();
       pg_obstacles.translate(j * 100, i * 100);
       pg_obstacles.rectMode(CENTER);
@@ -230,7 +233,7 @@ public void draw() {
     text("Structures as the apparatus that", 0, -30);
     text("allow the thought to form", 0, 30);
   }
-  if(frameCount % 15 == 0) {
+  if (frameCount % 15 == 0) {
     //saveFrame("capture/record-######.png");
   }
 }
