@@ -27,16 +27,17 @@ private class MyFluidData implements DwFluid2D.FluidData {
 
     // add impulse: density + temperature
     intensity = 1.0f;
-    px = 1*width/3;
+    px = 1*width/2;
     py = 0;
-    radius = 200;
+    radius = 100;
     r = 0.0f;
     g = 0.3f;
     b = 1.0f;
     fluid.addDensity(px, py, radius, r, g, b, intensity);
 
-    if ((fluid.simulation_step) % 200 < 2) {
-      temperature = 30f;
+    //if ((fluid.simulation_step) % 200 < 2 && t % 8.0 > 4.0) {
+    if (4.0 <= t % 8.0 && t % 8.0 < 6.5) {
+      temperature = 60f;
       fluid.addTemperature(px, py, radius, temperature);
     }
 
@@ -44,9 +45,9 @@ private class MyFluidData implements DwFluid2D.FluidData {
     float animator = sin(fluid.simulation_step*0.01f);
 
     intensity = 1.0f;
-    px = 2*width/3f;
-    py = height-150;
-    radius = 150;
+    px = 1*width/2f;
+    py = height-0;
+    radius = 100;
     r = 1.0f;
     g = 0.0f;
     b = 0.3f;
@@ -54,17 +55,18 @@ private class MyFluidData implements DwFluid2D.FluidData {
 
     temperature = animator * 50f;
     //fluid.addTemperature(px, py, radius, temperature);
-    if ((fluid.simulation_step+100) % 200 < 2) {
-      temperature = -30f;
+    //if ((fluid.simulation_step+100) % 200 < 2 && t % 8.0 > 4.0) {
+    if (4.0 <= t % 8.0 && t % 8.0 < 6.5) {
+      temperature = -60f;
       fluid.addTemperature(px, py, radius, temperature);
     }
   }
 }
 
 
-int viewport_w = 1080;//800;
-int viewport_h = 1920;//800;
-int fluidgrid_scale = 1;
+int viewport_w = 800;
+int viewport_h = 800;
+int fluidgrid_scale = 2;
 
 int gui_w = 200;
 int gui_x = 20;
@@ -85,13 +87,18 @@ int     DISPLAY_fluid_texture_mode = 0;
 DwGLSLProgram shader;
 DwPixelFlow context;
 
+float[][] randThisSequence = new float[8][8];
+float t = 0.0;
+
+PFont font;
+
 public void settings() {
   size(viewport_w, viewport_h, P2D);
   smooth(2);
 }
 
 public void setup() {
-
+  font = createFont("../../assets/Avenir.otf", 60);
   // main library context
   DwPixelFlow context = new DwPixelFlow(this);
   context.print();
@@ -124,46 +131,73 @@ public void setup() {
 
 
 
-public void draw() {    
+public void draw() {
   if (frameCount % 60 == 0) {
+    println(frameRate);
     //shader = context.createShader(shader, dataPath("frag.glsl"));
   }
 
-
   //float t = millis() * 0.001;
-  float t = frameCount / 30.0;
+  t = frameCount / 30.0;
+
+  int mode = floor(random(3.0));
+  if (t % 8.0 == 0.0) {
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if(mode == 0)
+          randThisSequence[i][j] = random(1.0);
+        else if(mode == 1)
+          randThisSequence[i][j] = i % 2;
+        else if(mode == 2)
+          randThisSequence[i][j] = (i / 2) % 2;
+      }
+    }
+  }
+
+  if (t % 8.0 < 4.0) {
+    fluid.param.dissipation_density     = 0.25f;
+    fluid.param.dissipation_velocity    = 0.0f;
+    fluid.param.dissipation_temperature = 0.25f;
+  } else if (t % 8.0 < 7.0) {
+    fluid.param.dissipation_density     = 0.9999f;
+    fluid.param.dissipation_velocity    = 0.9999f;
+    fluid.param.dissipation_temperature = 0.990f;
+  } else if (t % 8.0 < 7.25) {
+    fluid.param.dissipation_density     = 0.9999f;
+    fluid.param.dissipation_velocity    = 0.5f;
+    fluid.param.dissipation_temperature = 0.80f;
+  } else {
+    fluid.param.dissipation_density     = 0.9999f;
+    fluid.param.dissipation_velocity    = 0.0f;
+    fluid.param.dissipation_temperature = 0.80f;
+  }
 
   // obstacle
-  //pg_obstacles.beginDraw();
-  //pg_obstacles.clear();
-  //// circle-obstacles
-  //pg_obstacles.noStroke();
-  //pg_obstacles.fill(64);
-  //float radius, r;
-  //radius = 150;
-  //float y = (t) % 4;
-  //y = 1;
+  pg_obstacles.beginDraw();
+  pg_obstacles.clear();
+  pg_obstacles.noStroke();
+  pg_obstacles.fill(255);
 
-  //if(y < 2) {
-  //  if(y < 1) y = 1 - y;
-  //  if(y >= 1) y = y - 1;
-  //  r = radius * sqrt(1.0 - y * y);
-  //  pg_obstacles.ellipse(2*width/3f, 2*height/4f, r, r);
-  //  radius = 200;
-  //  r = radius * sqrt(1.0 - y * y);
-  //  pg_obstacles.ellipse(1*width/3f, 1*height/4f, r, r);
-  //}
-  //else {
-    
-  //}
-  //// border-obstacle
-  //pg_obstacles.strokeWeight(20);
-  //pg_obstacles.stroke(64);
-  //pg_obstacles.noFill();
-  //pg_obstacles.rect(0, 0, pg_obstacles.width, pg_obstacles.height);
-  //pg_obstacles.endDraw();
+  for (int i = 2; i < 7; i++) {
+    for (int j = 0; j < 8; j++) {
+      pg_obstacles.pushMatrix();
+      pg_obstacles.translate(j * 100, i * 100);
+      pg_obstacles.rectMode(CENTER);
+      pg_obstacles.rotate(PI * 0.25);
+      if (randThisSequence[i][j] > 0.5) pg_obstacles.rotate(PI * 0.5);
+      float tt = t % 8.0;
+      if (t % 8.0 > 4.0) tt = 4.0;
+      if ((tt / 4.0) % 2.0 < 1.0)
+        pg_obstacles.rotate(pow((tt / 4.0) % 1.0, 2.0) * PI * 2.0);
+      float w = 1.41 * 100 * pow(constrain((tt / 4.0) % 2.0, 0, 1), 4.0);
+      if (t % 8.0 > 7.0) w = 1.41 * 100 * map(t % 8.0, 7.0, 8.0, 1.0, 0.0);
+      pg_obstacles.rect(0, 0, w, 4);
+      pg_obstacles.popMatrix();
+    }
+  }
 
-  
+  pg_obstacles.endDraw();
+
   // update simulation
   if (UPDATE_FLUID) {
     fluid.addObstacles(pg_obstacles);
@@ -174,12 +208,29 @@ public void draw() {
 
   context.begin();
   shader.begin();
+  Texture tex_obstacles = pg_obstacles.getTexture();
   shader.uniformTexture("u_depth", fluid.tex_density    .src);
+  shader.uniformTexture("u_obstacle", tex_obstacles.glName);
   shader.uniform1f("iTime", t);
   shader.drawFullScreenQuad();
   shader.end();
   context.endDraw();
   context.end("Fluid.renderFluidTextures");
-  
-  saveFrame("capture/record-######.png");
+
+  if (t % 8.0 < 4.0) {
+    textFont(font, 45);
+    float alpha;
+    if (t % 4.0 < 1.0) alpha = map(t % 4.0, 0, 1, 0, 1);
+    else if (t % 4.0 < 3.0) alpha = 1.0;
+    else alpha = map(t % 4.0, 3, 4, 1, 0);
+
+    fill(255, 255 * alpha);
+    textAlign(CENTER, CENTER);
+    translate(400, 400);
+    text("Structures as the apparatus that", 0, -30);
+    text("allow the thought to form", 0, 30);
+  }
+  if(frameCount % 15 == 0) {
+    //saveFrame("capture/record-######.png");
+  }
 }

@@ -29,6 +29,7 @@ uniform vec3 bpos[4];
 uniform sampler2D texture;
 uniform sampler2D u_depth;
 uniform sampler2D u_color;
+uniform sampler2D u_obstacle;
 
 //SuperShape 3d by eiffie based on mickdermack's 2d formula
 uniform vec3 cameraPosition;
@@ -221,27 +222,24 @@ float pi = 3.14159265359;
 
 vec2 map( in vec3 pos )
 {
-  vec3 p = pos * vec3(2.0) + vec3(0.5, 0.5, 0.0);
-  vec4 stex = texture2D(u_depth, (p.xy) *vec2(1.0) * 0.25+vec2(0.6, 0.5));
-  float depth = stex.r+stex.g+stex.b;
-  depth *= .1;
-  depth = min(depth, 0.3);
-  float baseColor = 50.0;
+  vec3 p = pos * vec3(1.65) + vec3(0.0);
+  vec2 uv = (p.xy) *vec2(1.0) * 0.25+vec2(0.5, 0.5);
+  vec4 stex = texture2D(u_depth, uv);
+  vec4 obstex = texture2D(u_obstacle, uv);
+  float depth;
+  float baseColor = 40.0;
+  float col;
+  if(obstex.r > 0.5) {
+    depth = 0.1;
+    col = 10.0;
+  } else {
+    depth = stex.r+stex.g+stex.b;
+    depth *= .1;
+    depth = min(depth, 0.3);
+    col = baseColor - 40 * stex.r + 50 * stex.b;
+  }
 
-	vec2 fragCoord = gl_FragCoord.st / 1080.0;
-    vec2 uv = fragCoord;
-
-    // Time varying pixel color
-    vec2 cb = vec2(0.5,0.0);
-
-    float t = iTime * 2.0;
-  
-  vec2 res = vec2(sdBox(p, vec3(2.0, 2.0, 1.0+depth)), baseColor - 40 * stex.r + 20 * stex.b);
-  float rad;
-//   rad = 0.25;
-//   res = opU(res, vec2(sdSphere(p - vec3(-1.0/3.0, 1.0, 1 + rad*0.5), rad), 60.0));
-//   rad = 0.25 * 0.75;
-//   res = opU(res, vec2(sdSphere(p - vec3(1.0/3.0, 0, 1.0 + rad*0.5), rad), 20.0));
+  vec2 res = vec2(sdBox(p, vec3(2.0, 2.0, 1.0+depth)), col);
 
   return res;
 }
@@ -250,22 +248,15 @@ vec2 castRay( in vec3 ro, in vec3 rd )
 {
     float tmin = 1.0;
     float tmax = 20.0;
-   
-#if 0
-    // bounding volume
-    float tp1 = (0.0-ro.y)/rd.y; if( tp1>0.0 ) tmax = min( tmax, tp1 );
-    float tp2 = (1.6-ro.y)/rd.y; if( tp2>0.0 ) { if( ro.y>1.6 ) tmin = max( tmin, tp2 );
-                                                 else           tmax = min( tmax, tp2 ); }
-#endif
     
     float t = tmin;
     float m = -1.0;
-    for( int i=0; i<128; i++ )
+    for( int i=0; i<64; i++ )
     {
-	    float precis = 0.00025*t;
+	    float precis = 0.025*t;
 	    vec2 res = map( ro+rd*t );
         if( res.x<precis || t>tmax ) break;
-        t += res.x * 0.125;
+        t += res.x * 0.025;
 	    m = res.y;
     }
 
@@ -278,7 +269,7 @@ float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
 {
 	float res = 1.0;
     float t = mint;
-    for( int i=0; i<32; i++ )
+    for( int i=0; i<1; i++ )
     {
 		float h = map( ro + rd*t ).x;
         res = min( res, 8.0*h/t );
@@ -295,14 +286,6 @@ vec3 calcNormal( in vec3 pos )
 					  e.yyx*map( pos + e.yyx ).x + 
 					  e.yxy*map( pos + e.yxy ).x + 
 					  e.xxx*map( pos + e.xxx ).x );
-    /*
-	vec3 eps = vec3( 0.0005, 0.0, 0.0 );
-	vec3 nor = vec3(
-	    map(pos+eps.xyy).x - map(pos-eps.xyy).x,
-	    map(pos+eps.yxy).x - map(pos-eps.yxy).x,
-	    map(pos+eps.yyx).x - map(pos-eps.yyx).x );
-	return normalize(nor);
-	*/
 }
 
 float calcAO( in vec3 pos, in vec3 nor )
@@ -346,12 +329,12 @@ vec3 render( in vec3 ro, in vec3 rd )
         
         // material
 		col = 0.45 + 0.35*sin( vec3(0.05,0.08,0.10)*(m-1.0) );
-        if( m<1.5 )
-        {
+        // if( m<1.5 )
+        // {
             
-            float f = checkersGradBox( 5.0*pos.xz );
-            col = 0.3 + f*vec3(0.1);
-        }
+        //     float f = checkersGradBox( 5.0*pos.xz );
+        //     col = 0.3 + f*vec3(0.1);
+        // }
 
         // lighitng        
         float occ = calcAO( pos, nor );
@@ -398,51 +381,31 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
 void main()
 {
 	vec2 iResolution = vec2(1.0);
-	vec2 fragCoord = gl_FragCoord.st / 1080.0;
-  vec2 mo = vec2(0);//iMouse.xy/iResolution.xy;
+	vec2 fragCoord = gl_FragCoord.st / 800.0;
+    vec2 mo = vec2(0);//iMouse.xy/iResolution.xy;
 	float time = 15.0 + iTime;
 
     vec3 tot = vec3(0.0);
-#if AA>1
-    for( int m=0; m<AA; m++ )
-    for( int n=0; n<AA; n++ )
-    {
-        // pixel coordinates
-        vec2 o = vec2(float(m),float(n)) / float(AA) - 0.5;
-        vec2 p = (-iResolution.xy + 2.0*(fragCoord+o))/iResolution.y;
-#else    
-        vec2 p = (-iResolution.xy + 2.0*fragCoord)/iResolution.y;
-#endif
+    vec2 p = (-iResolution.xy + 2.0*fragCoord)/iResolution.y;
 
-		// camera	
-        // vec3 ro = vec3( 3.0*cos(iTime*0.2), 1.0, 3.0*sin(iTime*0.2) );
-        vec3 ro = vec3( 0.0, 0.0, 3.0 );
-        // vec3 ta = vec3( -0.5, -0.4, 0.5 );
-        vec3 ta = vec3(0, 0.0, 0);
-        // camera-to-world transformation
-        mat3 ca = setCamera( ro, ta, 0.0 );
-        // ray direction
-        vec3 rd = ca * normalize( vec3(p.xy,2.0) );
-        // vec3 rd = ca * normalize( vec3(p.xy/vec2(16.0/9.0,1.0),2.0) );
+    // camera	
+    // vec3 ro = vec3( 3.0*cos(iTime*0.2), 1.0, 3.0*sin(iTime*0.2) );
+    vec3 ro = vec3( 0.0, 0.0, 3.0 );
+    // vec3 ta = vec3( -0.5, -0.4, 0.5 );
+    vec3 ta = vec3(0, 0.0, 0);
+    // camera-to-world transformation
+    mat3 ca = setCamera( ro, ta, 0.0 );
+    // ray direction
+    vec3 rd = ca * normalize( vec3(p.xy,2.0) );
+    // vec3 rd = ca * normalize( vec3(p.xy/vec2(16.0/9.0,1.0),2.0) );
 
-        // render	
-        vec3 col = render( ro, rd );
+    // render	
+    vec3 col = render( ro, rd );
 
-		// gamma
-        col = pow( col, vec3(0.4545) );
+    // gamma
+    col = pow( col, vec3(0.4545) );
 
-        tot += col;
-#if AA>1
-    }
-    tot /= float(AA*AA);
-#endif
-
-    // vec3 red = vec3(1.0, 0.1, 0.0);
-    // vec3 green = vec3(0.5);
-    // vec3 blue = vec3(0.1, 0.0, 1.0);
-    // red = mix(red, green, fragCoord.t * sin(iTime * 0.5) * 0.5 + 0.5);
-    // blue = mix(blue, vec3(0.0, 0.75, 0.9), sin(iTime * 0.4) * 0.5 + 0.5);
-    // gl_FragColor = vec4( mix(red, blue, tot.r).rg, tot.b, 1.0 );
+    tot += col;
 
     gl_FragColor = vec4(tot, 1.0);
 }
