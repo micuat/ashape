@@ -199,6 +199,20 @@ public void draw() {
     }
   }
 
+  if (t % 8.0 < 4.0) {
+    pg_obstacles.textFont(font, 45);
+    float alpha;
+    if (t % 4.0 < 1.0) alpha = map(t % 4.0, 0, 1, 0, 1);
+    else if (t % 4.0 < 3.0) alpha = 1.0;
+    else alpha = map(t % 4.0, 3, 4, 1, 0);
+
+    pg_obstacles.fill(255, 255 * alpha);
+    pg_obstacles.textAlign(CENTER, CENTER);
+    pg_obstacles.translate(400, 400);
+    pg_obstacles.text("Structures as the apparatus that", 0, -30);
+    pg_obstacles.text("allow the thought to form", 0, 30);
+  }
+
   pg_obstacles.endDraw();
 
   // update simulation
@@ -220,19 +234,6 @@ public void draw() {
   context.endDraw();
   context.end("Fluid.renderFluidTextures");
 
-  if (t % 8.0 < 4.0) {
-    textFont(font, 45);
-    float alpha;
-    if (t % 4.0 < 1.0) alpha = map(t % 4.0, 0, 1, 0, 1);
-    else if (t % 4.0 < 3.0) alpha = 1.0;
-    else alpha = map(t % 4.0, 3, 4, 1, 0);
-
-    fill(255, 255 * alpha);
-    textAlign(CENTER, CENTER);
-    translate(400, 400);
-    text("Structures as the apparatus that", 0, -30);
-    text("allow the thought to form", 0, 30);
-  }
   if (frameCount % 15 == 0) {
     //saveFrame("capture/record-######.png");
   }

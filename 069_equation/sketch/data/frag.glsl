@@ -227,11 +227,11 @@ vec2 map( in vec3 pos )
   vec4 stex = texture2D(u_depth, uv);
   vec4 obstex = texture2D(u_obstacle, uv);
   float depth;
-  float baseColor = 45.0;
+  float baseColor = 35.0;
   float col;
-  if(obstex.r > 0.5) {
-    depth = 0.1;
-    col = 10.0;
+  if(obstex.r > 0.1) {
+    depth = 0.01;
+    col = 55.0;
   } else {
     depth = stex.r+stex.g+stex.b;
     depth *= .1;
@@ -310,7 +310,8 @@ float checkersGradBox( in vec2 p )
     // filter kernel
     vec2 w = fwidth(p) + 0.001;
     // analytical integral (box filter)
-    vec2 i = 2.0*(abs(fract((p-0.5*w)*0.5)-0.5)-abs(fract((p+0.5*w)*0.5)-0.5))/w;
+    float d = 0.5;
+    vec2 i = 2.0*(abs(fract((p-d*w)*d)-d)-abs(fract((p+d*w)*d)-d))/w;
     // xor pattern
     return 0.5 - 0.5*i.x*i.y;                  
 }
@@ -330,12 +331,12 @@ vec3 render( in vec3 ro, in vec3 rd )
         
         // material
 		col = 0.45 + 0.35*sin( vec3(0.05,0.08,0.10)*(m-1.0) );
-        // if( m<1.5 )
-        // {
+        if( m<1.5 )
+        {
             
-        //     float f = checkersGradBox( 5.0*pos.xz );
-        //     col = 0.3 + f*vec3(0.1);
-        // }
+            float f = checkersGradBox( 25.0*pos.xz * vec2(1.0, 20.0));
+            col = 0.0 + f*vec3(0.1);
+        }
 
         // lighitng        
         float occ = calcAO( pos, nor );
