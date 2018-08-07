@@ -29,7 +29,7 @@ private class MyFluidData implements DwFluid2D.FluidData {
     intensity = 2.0f;
     px = 1*width/2;
     py = height/2-50;
-    radius = 50;
+    radius = min(t % 8.0, 1.0) * 50;
     r = 0.0f;
     g = 0.3f;
     b = 1.0f;
@@ -47,7 +47,7 @@ private class MyFluidData implements DwFluid2D.FluidData {
     intensity = 2.0f;
     px = 1*width/2f;
     py = height/2f+50;
-    radius = 50;
+    radius = min(t % 8.0, 1.0) * 50;
     r = 1.0f;
     g = 0.0f;
     b = 0.3f;
@@ -199,19 +199,19 @@ public void draw() {
     }
   }
 
-  if (t % 8.0 < 4.0) {
-    pg_obstacles.textFont(font, 45);
-    float alpha;
-    if (t % 4.0 < 1.0) alpha = map(t % 4.0, 0, 1, 0, 1);
-    else if (t % 4.0 < 3.0) alpha = 1.0;
-    else alpha = map(t % 4.0, 3, 4, 1, 0);
+  //if (t % 8.0 < 4.0) {
+  //  pg_obstacles.textFont(font, 45);
+  //  float alpha;
+  //  if (t % 4.0 < 1.0) alpha = map(t % 4.0, 0, 1, 0, 1);
+  //  else if (t % 4.0 < 3.0) alpha = 1.0;
+  //  else alpha = map(t % 4.0, 3, 4, 1, 0);
 
-    pg_obstacles.fill(255, 255 * alpha);
-    pg_obstacles.textAlign(CENTER, CENTER);
-    pg_obstacles.translate(400, 400);
-    pg_obstacles.text("Structures as the apparatus that", 0, -30);
-    pg_obstacles.text("allow the thought to form", 0, 30);
-  }
+  //  pg_obstacles.fill(255, 255 * alpha);
+  //  pg_obstacles.textAlign(CENTER, CENTER);
+  //  pg_obstacles.translate(400, 400);
+  //  pg_obstacles.text("Structures as the apparatus that", 0, -30);
+  //  pg_obstacles.text("allow the thought to form", 0, 30);
+  //}
 
   pg_obstacles.endDraw();
 
@@ -226,7 +226,7 @@ public void draw() {
   context.begin();
   shader.begin();
   Texture tex_obstacles = pg_obstacles.getTexture();
-  shader.uniformTexture("u_depth", fluid.tex_density    .src);
+  shader.uniformTexture("u_depth", fluid.tex_density.src);
   shader.uniformTexture("u_obstacle", tex_obstacles.glName);
   shader.uniform1f("iTime", t);
   shader.drawFullScreenQuad();

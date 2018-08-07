@@ -17,6 +17,7 @@ var s = function (p) {
   let curveFunctionX;
   let curveFunctionY;
   let rotationFunction;
+  let logoRotationFunction;
   let pgBackgroundFunction;
   let doDoubleDraw;
   let displaceN;
@@ -43,11 +44,11 @@ var s = function (p) {
         function (t) { }
         ,
         function (t) {
-          pg.rotateZ(Math.pow(Math.min(t * 1.0, 1.0), 0.25) * Math.PI * 0.5);
+          pg.rotateZ(Math.pow(Math.min(t * 1.0, 1.0), 0.25) * Math.PI);
         }
         ,
         function (t) {
-          pg.rotateY(t * Math.PI * 0.25);
+          pg.rotateY(Math.pow(Math.min(t * 0.5, 1.0), 0.5) * Math.PI);
         }
         ,
         function (t) {
@@ -55,10 +56,23 @@ var s = function (p) {
         }
         ,
         function (t) {
-          pg.rotateX(Math.pow(Math.min(t, 1.0), 0.5) * Math.PI * 0.5);
+          pg.rotateX(Math.pow(Math.min(t, 1.0), 0.5) * Math.PI);
         }
       ];
       rotationFunction = p.random(funcs);
+
+      funcs = [
+        function (t) { }
+        ,
+        function (t) {
+          p.rotateX(p.map((t * 2.0) % 4.0, 0.5, 2.0, 0.0, Math.PI * 0.5));
+        }
+        ,
+        function (t) {
+          p.rotateX(-p.map((t * 2.0) % 4.0, 0.5, 2.0, 0.0, Math.PI * 0.5));
+        }
+      ];
+      logoRotationFunction = p.random(funcs);
 
       funcs = [
         function () { pg.background(0); }
@@ -75,7 +89,7 @@ var s = function (p) {
       ];
       pgBackgroundFunction = p.random(funcs);
 
-      displaceN = Math.floor(p.random(0, 3));
+      displaceN = Math.floor(p.random(-3, 3));
 
       doDoubleDraw = false;//p.random(1.0) > 0.7 ? true : false;
 
@@ -93,16 +107,18 @@ var s = function (p) {
     pgBackgroundFunction();
     pg.endDraw();
 
-    if (true||t % 4 >= 1) {
+    {
       let n = 280;
       let dn = n / 10;
-      for (let i = -10; i <= 10; i++) {
-        let dl = n * curveFunctionX(i);
-        xs[i + 10] = p.lerp(xs[i + 10], dl, 0.1);
-      }
-      for (let j = -10; j <= 10; j++) {
-        let dl = n * curveFunctionY(j);
-        ys[j + 10] = p.lerp(ys[j + 10], dl, 0.1);
+      if (t % 4 >= 1) {
+        for (let i = -10; i <= 10; i++) {
+          let dl = n * curveFunctionX(i);
+          xs[i + 10] = p.lerp(xs[i + 10], dl, 0.1);
+        }
+        for (let j = -10; j <= 10; j++) {
+          let dl = n * curveFunctionY(j);
+          ys[j + 10] = p.lerp(ys[j + 10], dl, 0.1);
+        }
       }
       function drawSystem(broken) {
         for (let i = -10; i <= 10; i++) {
@@ -139,17 +155,17 @@ var s = function (p) {
 
       pg.stroke(100);
       pg.translate(pg.width / 2, pg.height / 2);
+      rotationFunction((t - 1) % 4.0);
       if (t % 4 < 20) {
-        // rotationFunction((t - 1) % 4.0);
         // pg.rotateY(t)
 
         pg.pushMatrix();
         pg.rotateY(Math.PI * 0.25);
         pg.noFill();
         let nn = 3;
-        for(let i = -0; i <= nn; i++) {
+        for(let i = -nn; i <= nn; i++) {
           for(let j = -nn; j <= nn; j++) {
-            for(let k = -nn; k <= 0; k++) {
+            for(let k = -nn; k <= nn; k++) {
               pg.pushMatrix();
               pg.translate(i * 600, j * 600, k * 600);
               pg.box(600);
@@ -194,19 +210,19 @@ var s = function (p) {
     p.image(pg, 0, 0)
 
     p.push();
-    p.translate(p.width / 2, p.height / 2);
+    p.translate(p.width / 2, p.height / 2, 50);
     if (t % 4 < 2) {
       p.push();
-      p.translate(0, 30);
-      let tweena = Math.min(1.0, p.map(t % 2.0, 0.0, 0.5, 0.0, 1.0));
-      if(t % 4.0 > 1.0)
-      tweena = Math.max(0.0, p.map(t % 2.0, 1.5, 2.0, 1.0, 0.0));
+      let tweena = Math.min(1.0, p.map((t * 2.0) % 4.0, 0.0, 0.5, 0.0, 1.0));
+      if(t % 4.0 > 0.5) {
+        logoRotationFunction(t);
+        tweena = Math.max(0.0, p.map((t * 2.0) % 4.0, 1.5, 2.0, 1.0, 0.0));
+      }
       p.fill(255, 255 * tweena);
 
-      p.textFont(font, 60);
+      p.textFont(font, 40);
       p.textAlign(p.CENTER, p.CENTER);
-      p.text('wresting equations', 0, -80);
-      p.text('from the event', 0, 20);
+      p.text('wresting equations from the event', 0, -0);
 
       p.pop();
     }
