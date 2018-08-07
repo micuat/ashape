@@ -253,7 +253,7 @@ var s = function (p) {
     }
     p.pop();
 
-    if(p.frameCount % 60 == 0) {
+    if(p.frameCount % 15 == 0) {
       // p.saveFrame(name + "/capture/######.png");
     }
   }
