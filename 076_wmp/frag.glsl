@@ -30,7 +30,14 @@ void main() {
 	vec2 nFragCoord = fragCoord.st - vec2(0.5);
 
 	vec4 pgCol = texture(pgTex, fragCoord);
-	vec4 backCol = texture(backTex, nFragCoord * centerDirection + vec2(0.5));
+	vec4 backCol;
+	if(vMirror > 0.5) {
+		backCol = texture(backTex, fragCoord + vec2(0.0, 0.01));
+		if(fragCoord.t > 1.0 - 0.01) backCol.rgb *= 0.0;
+	}
+	else {
+		backCol = texture(backTex, nFragCoord * centerDirection + vec2(0.5));
+	}
 
 	float lfc = length(nFragCoord);
 	float afc = atan(nFragCoord.t, nFragCoord.s) / 2.0 - 0.05 * iTime;
