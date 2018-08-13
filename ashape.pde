@@ -58,7 +58,7 @@ public PApplet that = this;
 
 public Icosahedron ico = new Icosahedron(75);
 
-public String folderName = "075_wresting";
+public String folderName = "078_woosung";
 
 boolean libInited = false;
 
