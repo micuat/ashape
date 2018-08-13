@@ -38,7 +38,7 @@ var s = function (p) {
       print(p.frameRate());
     }
     p.background(0);
-    p.noStroke();
+    p.strokeWeight(7.0);
     p.translate(p.width / 2, p.height / 2);
     let tween;
     let cycle = 12.0;
@@ -49,34 +49,24 @@ var s = function (p) {
       tween = p.map(Math.pow(p.map(t % cycle, 6.0, cycle, 1.0, 0.0), 2.0), 1.0, 0.0, 0.5, 1.0);
     }
     p.rotateY(tween * 2.0 * Math.PI);
-    let ylerp = Math.pow(1.0 - Math.abs(t % cycle - 6.0)/6.0, 2.0);
+    let ylerp = Math.pow(1.0 - Math.abs(t % cycle - 6.0)/6.0, 2.0) * 0.9;
     for(let i in particles) {
       let pc = particles[i];
-      p.fill(pc.color);
-      
-      if(pc.twd > 0) {
-        pc.twc = Math.min(1.0, pc.twc += 0.01);
-        if(pc.twc >= 1.0) {
-          pc.twd = 0.0;
-          pc.twc = 0.0;
-        }
-      }
-      if(p.random(1.0) > 0.999) {
-        pc.twd = 1.0;
-        pc.twc = 0.0;
-      }
+      // p.fill(pc.color);
+      p.stroke(pc.color);
 
-      p.push();
+      // p.push();
       let b = p.brightness(pc.color);
       let x = pc.x * 2;
       let y = pc.y * 2;
       let z = 2 * (100-b);
-      x = p.lerp(x, ylerp * 200 * Math.cos(b / 255.0 * Math.PI * 8.0 + t * 4.0), ylerp);
-      y = p.lerp(y, ylerp * 200 * Math.sin(b / 255.0 * Math.PI * 16.0 + t * 4.0), ylerp);
-      p.translate(x, y, z);
-      p.rotateY(-tween * 2.0 * Math.PI);
-      p.ellipse(0, 0, 7);
-      p.pop();
+      x = p.lerp(x, ylerp * 300 * Math.cos(b / 255.0 * Math.PI * 1.0 + t * 8.0), ylerp);
+      y = p.lerp(y, ylerp * 300 * Math.sin(b / 255.0 * Math.PI * 2.0 + t * 8.0), ylerp);
+      // p.translate(x, y, z);
+      // p.rotateY(-tween * 2.0 * Math.PI);
+      p.point(x, y, z);
+      // p.ellipse(0, 0, 7);
+      // p.pop();
     }
   }
 };
