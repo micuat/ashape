@@ -41,13 +41,15 @@ var s = function (p) {
     p.noStroke();
     p.translate(p.width / 2, p.height / 2);
     let tween;
-    if(t % 4.0 <= 2.0) {
-      tween = Math.pow((t % 4.0) / 4.0 * 2.0, 4.0) / 2.0;
+    let cycle = 12.0;
+    if(t % cycle <= 6.0) {
+      tween = Math.pow((t % cycle) / 6.0, 2.0) / 2.0;
     }
     else {
-      tween = 1.0 - Math.pow(2.0 - (t % 4.0) / 4.0 * 2.0, 4.0) / 2.0;
+      tween = p.map(Math.pow(p.map(t % cycle, 6.0, cycle, 1.0, 0.0), 2.0), 1.0, 0.0, 0.5, 1.0);
     }
     p.rotateY(tween * 2.0 * Math.PI);
+    let ylerp = Math.pow(1.0 - Math.abs(t % cycle - 6.0)/6.0, 2.0);
     for(let i in particles) {
       let pc = particles[i];
       p.fill(pc.color);
@@ -65,7 +67,13 @@ var s = function (p) {
       }
 
       p.push();
-      p.translate(pc.x * 2, pc.y * 2, 2 * (100-p.brightness(pc.color)));
+      let b = p.brightness(pc.color);
+      let x = pc.x * 2;
+      let y = pc.y * 2;
+      let z = 2 * (100-b);
+      x = p.lerp(x, ylerp * 200 * Math.cos(b / 255.0 * Math.PI * 8.0 + t * 4.0), ylerp);
+      y = p.lerp(y, ylerp * 200 * Math.sin(b / 255.0 * Math.PI * 16.0 + t * 4.0), ylerp);
+      p.translate(x, y, z);
       p.rotateY(-tween * 2.0 * Math.PI);
       p.ellipse(0, 0, 7);
       p.pop();
