@@ -78,7 +78,7 @@ var s = function (p) {
       let dr = 0;
       if(waveFunc) {
         dr = pg.width * 0.04 * waveFunc(angle);
-        r += dr;
+        // r += dr;
       }
       let x = r * Math.sin(angle);
       let y = r * Math.cos(angle);
@@ -87,11 +87,22 @@ var s = function (p) {
     return points;
   }
 
-  function drawPoints(points) {
-    pg.beginShape();
+  function drawPoints(points, pointLerp) {
+    if(pointLerp > 0) {
+      pg.beginShape(p.LINES);
+    }
+    else {
+      pg.beginShape();
+    }
     for (let i = 0; i < points.length; i++) {
       let p0 = points[i];
       pg.vertex(p0.x, p0.y, p0.z);
+      if(pointLerp > 0) {
+        let p1 = points[(i + 1) % points.length];
+        pg.vertex(p.lerp(p1.x, p0.x, pointLerp),
+        p.lerp(p1.y, p0.y, pointLerp),
+        p.lerp(p1.z, p0.z, pointLerp));
+      }
     }
     pg.endShape(p.CLOSE);
   }
@@ -139,6 +150,9 @@ var s = function (p) {
       }
       pg.rotateX(Math.PI - Math.PI * rt * 0.5);
     }
+    else if (mode == 9) {
+      pg.rotateX(Math.PI - Math.PI * 0.5);
+    }
 
     pg.stroke(255);
     pg.strokeWeight(3);
@@ -150,7 +164,7 @@ var s = function (p) {
       np = 3;
     }
     else if (mode == 6) {
-      let tween = EasingFunctions.easeInOutCubic(t / 8);
+      let tween = EasingFunctions.easeInOutCubic(t / 4);
       if(tween > 1) {
         tween = 1;
         nextMode = mode + 1;
@@ -166,20 +180,23 @@ var s = function (p) {
         if(tween > 1) {
           tween = 1;
         }
-        return Math.sin(angle * 16 - t * 16) * tween * 0.5;
+        return Math.sin(angle * 16 - t * 4 * Math.PI) * tween * 0.5;
       }
-      if(t > 3) {
+      if(t > 4) {
         nextMode = mode + 1;
       }
     }
     else if (mode == 8) {
       np = 128;
       waveFunc = function(angle) {
-        return Math.sin(angle * 16 - t * 16) * 0.5;
+        return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
       }
     }
     else {
-
+      np = 128;
+      waveFunc = function(angle) {
+        return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
+      }
     }
     let points = preparePoints(np, waveFunc);
 
@@ -236,11 +253,11 @@ var s = function (p) {
           }
           tween = EasingFunctions.easeInOutCubic(iTween0125-modt);
         }
-        drawPoints(points);
+        drawPoints(points, 0);
         points = getInside(points, tween, 10);
       }
       else if (mode == 4) {
-        drawPoints(points);
+        drawPoints(points, 0);
         tween = EasingFunctions.easeInOutCubic(t);
         if(tween > 1) {
           tween = 1;
@@ -252,8 +269,17 @@ var s = function (p) {
       pg.popMatrix();
     }
 
-    if (5 <= mode) {
-      drawPoints(points);
+    if (mode <= 4) {
+    }
+    else if (mode <= 8) {
+      drawPoints(points, 0);
+    }
+    else if (mode == 9) {
+      let tween = EasingFunctions.easeInOutCubic(t);
+      if(tween > 1) {
+        tween = 1;
+      }
+      drawPoints(points, tween * 0.9);
     }
 
     pg.popMatrix();
@@ -277,4 +303,4 @@ var s = function (p) {
   }
 };
 
-var p085 = new p5(s);
+var p086 = new p5(s);
