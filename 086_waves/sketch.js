@@ -33,13 +33,13 @@ var s = function (p) {
   let seq, phase, cycle;
   let pg;
 
-  let mode = 9;
+  let mode = 13;
 
   let agents = [];
 
   let iTween0125;
 
-  function Agent () {
+  function Agent() {
     this.rotate = 0;
     this.i = 0;
   }
@@ -55,13 +55,13 @@ var s = function (p) {
 
     pg = p.createGraphics(800, 800, p.P3D);
 
-    for(let i = 0; i < 8; i++) {
+    for (let i = 0; i < 8; i++) {
       agents.push(new Agent());
       agents[i].i = i;
     }
 
-    for(let i = 0; i < 1; i += 0.01) {
-      if(EasingFunctions.easeInOutCubic(i) > 0.125) {
+    for (let i = 0; i < 1; i += 0.01) {
+      if (EasingFunctions.easeInOutCubic(i) > 0.125) {
         iTween0125 = i;
         break;
       }
@@ -76,20 +76,20 @@ var s = function (p) {
       let angle = 2 * Math.PI / np * i;
       let r = pg.width * 0.4;
       let dr = 0;
-      if(params && params.waveFunc) {
+      if (params && params.waveFunc) {
         dr = pg.width * 0.04 * params.waveFunc(angle);
         // r += dr;
       }
       let x = r * Math.sin(angle);
       let y = r * Math.cos(angle);
       let z = dr;
-      if(params && params.sx != undefined) {
+      if (params && params.sx != undefined) {
         x *= params.sx;
       }
-      if(params && params.sy != undefined) {
+      if (params && params.sy != undefined) {
         y *= params.sy;
       }
-      if(params && params.sz != undefined) {
+      if (params && params.sz != undefined) {
         z *= params.sz;
       }
       points.push({ x: x, y: y, z: z });
@@ -98,13 +98,13 @@ var s = function (p) {
   }
 
   function drawPoints(points, params) {
-    if(params && params.xLine) {
+    if (params && params.xLine) {
       pg.beginShape(p.LINES);
     }
-    else if(params && params.point && params.point > 0 && params.point < 0.9) {
+    else if (params && params.point && params.point > 0 && params.point < 0.9) {
       pg.beginShape(p.LINES);
     }
-    else if(params && params.point && params.point >= 0.9) {
+    else if (params && params.point && params.point >= 0.9) {
       pg.beginShape(p.POINTS);
     }
     else {
@@ -112,18 +112,18 @@ var s = function (p) {
     }
     for (let i = 0; i < points.length; i++) {
       let p0 = points[i];
-      if(params && params.xLine) {
-        pg.vertex(p0.x-pg.width * params.xLine, p0.y, p0.z);
-        pg.vertex(p0.x+pg.width * params.xLine, p0.y, p0.z);
+      if (params && params.xLine) {
+        pg.vertex(p0.x - pg.width * params.xLine, p0.y, p0.z);
+        pg.vertex(p0.x + pg.width * params.xLine, p0.y, p0.z);
       }
       else {
         pg.vertex(p0.x, p0.y, p0.z);
       }
-      if(params && params.point && params.point > 0 && params.point < 0.9) {
+      if (params && params.point && params.point > 0 && params.point < 0.9) {
         let p1 = points[(i + 1) % points.length];
         pg.vertex(p.lerp(p1.x, p0.x, params.point),
-        p.lerp(p1.y, p0.y, params.point),
-        p.lerp(p1.z, p0.z, params.point));
+          p.lerp(p1.y, p0.y, params.point),
+          p.lerp(p1.z, p0.z, params.point));
       }
     }
     pg.endShape(p.CLOSE);
@@ -150,220 +150,229 @@ var s = function (p) {
     pg.pushMatrix();
     pg.translate(pg.width / 2, pg.height / 2);
 
-    if (mode < 5) {
-      pg.rotateX(Math.PI / 4);
-    }
-    else if (mode == 5) {
-      let rt = EasingFunctions.easeInOutCubic(t);
-      if(rt > 1) {
-        rt = 1;
-        nextMode = mode + 1;
+    if (mode <= 13) {
+      if (mode < 5) {
+        pg.rotateX(Math.PI / 4);
       }
-      pg.rotateX(Math.PI / 4 + Math.PI * rt * 3 / 4);
-    }
-    else if (mode <= 7) {
-      pg.rotateX(Math.PI);
-    }
-    else if (mode == 8) {
-      let rt = EasingFunctions.easeInOutCubic(t);
-      if(rt > 1) {
-        rt = 1;
-        nextMode = mode + 1;
-      }
-      pg.rotateX(Math.PI - Math.PI * rt * 0.5);
-    }
-    else if (mode <= 13) {
-      pg.rotateX(Math.PI - Math.PI * 0.5);
-    }
-
-    pg.stroke(255);
-    pg.strokeWeight(3);
-    pg.noFill();
-
-    let np;
-    let params = {};
-    if (mode <= 5) {
-      np = 3;
-    }
-    else if (mode == 6) {
-      let tween = EasingFunctions.easeInOutCubic(t / 4);
-      if(tween > 1) {
-        tween = 1;
-        nextMode = mode + 1;
-      }
-      np = p.map(tween * tween, 0, 1, 3, 128);
-    }
-    else if (mode == 7) {
-      np = 128;
-      params.waveFunc = function(angle) {
-        let twseed = t * 16 - angle * 2;
-        if(twseed < 0) twseed = 0;
-        let tween = EasingFunctions.easeInOutQuint(twseed);
-        if(tween > 1) {
-          tween = 1;
+      else if (mode == 5) {
+        let rt = EasingFunctions.easeInOutCubic(t);
+        if (rt > 1) {
+          rt = 1;
+          nextMode = mode + 1;
         }
-        return Math.sin(angle * 16 - t * 4 * Math.PI) * tween * 0.5;
+        pg.rotateX(Math.PI / 4 + Math.PI * rt * 3 / 4);
       }
-      if(t > 4) {
-        nextMode = mode + 1;
+      else if (mode <= 7) {
+        pg.rotateX(Math.PI);
       }
-    }
-    else if (mode == 8) {
-      np = 128;
-      params.waveFunc = function(angle) {
-        return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
+      else if (mode == 8) {
+        let rt = EasingFunctions.easeInOutCubic(t);
+        if (rt > 1) {
+          rt = 1;
+          nextMode = mode + 1;
+        }
+        pg.rotateX(Math.PI - Math.PI * rt * 0.5);
       }
-    }
-    else if (mode == 9) {
-      np = 128;
-      params.waveFunc = function(angle) {
-        return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
+      else if (mode <= 13) {
+        pg.rotateX(Math.PI - Math.PI * 0.5);
       }
-    }
-    else if (mode <= 10) {
-      np = 128;
-      params.waveFunc = function(angle) {
-        return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
-      }
-      let tween = EasingFunctions.easeInOutQuint(t / 4.0);
-      if(tween > 1) {
-        tween = 1;
-        nextMode = mode + 1;
-      }
-      params.sy = p.map(tween, 0, 1, 1, 0);
-      params.sz = p.map(tween, 0, 1, 1, 20.0);
-    }
-    else if (mode <= 11) {
-      np = 128;
-      let tween = EasingFunctions.easeInOutQuint(t / 4.0);
-      if(tween > 1) {
-        tween = 1;
-        nextMode = mode + 1;
-      }
-      params.waveFunc = function(angle) {
-        return Math.sin(angle * p.map(tween, 0, 1, 16, 4) - t * p.map(tween, 0, 1, 4, 1) * Math.PI) * 0.5;
-      }
-      params.sy = 0.0;
-      params.sz = 20.0;
-    }
-    else if (mode <= 12) {
-      np = 128;
-      params.waveFunc = function(angle) {
-        return Math.sin(angle * 4 - t * 1 * Math.PI) * 0.5;
-      }
-      params.sy = 0.0;
-      params.sz = 20.0;
-    }
-    else if (mode <= 13) {
-      np = 128;
-      let tween = EasingFunctions.easeInOutQuint(t / 8.0);
-      if(tween > 1) {
-        tween = 1;
-        // nextMode = mode + 1;
-      }
-      params.waveFunc = function(angle) {
-        return Math.sin(angle * 4 - t * p.map(tween, 0, 1, 1, 0) * Math.PI) * 0.5;
-      }
-      params.sy = 0.0;
-      params.sz = 20.0;
-    }
-    let points = preparePoints(np, params);
 
-    // pg.hint(p.DISABLE_DEPTH_TEST);
-    // pg.blendMode(p.ADD);
-    for (let i = 0; i < agents.length; i++) {
-      pg.pushMatrix();
-      pg.pushStyle();
+      pg.stroke(255);
+      pg.strokeWeight(3);
       pg.noFill();
-      let po = 5 - i;
-      if (po < 1) po = 1;
-      let tween = 0;
-      if (mode <= 3) {
-        if (mode == 0) {
-          let modt = (t / Math.pow(2, po)) % 1.0;
-          tween = EasingFunctions.easeInOutCubic(modt);
-          if(i == 0 && (t / Math.pow(2, po)) >= 1.0) {
-            nextMode = mode + 1;
-          }
-        }
-        else if (mode == 1) {
-          let modt = (t / (8 - i));
-          if(modt > iTween0125) {
-            modt = iTween0125;
-            if(i == 0) {
-              nextMode = mode + 1;
-            }
-          }
-          tween = EasingFunctions.easeInOutCubic(modt);
-        }
-        else if (mode == 2) {
-          tween = EasingFunctions.easeInOutCubic(iTween0125);
-          pg.translate(0,0,10*i);
-          pg.rotateZ(0.125 * Math.PI / 3 * i);
-          pg.rotateY(EasingFunctions.easeInOutCubic(agents[i].rotate) * 2 * Math.PI);
-          pg.rotateZ(-0.125 * Math.PI / 3 * i);
-          pg.translate(0,0,-10*i);
-          agents[i].rotate += 0.025 / (i+1);
-          if(agents[i].rotate > 1) {
-            agents[i].rotate = 1;
-            if(i == agents.length - 1) {
-              nextMode = mode + 1;
-            }
-          }
-        }
-        else if (mode == 3) {
-          let modt = (t / (8 - i));
-          if(modt > iTween0125) {
-            modt = iTween0125;
-            if(i == 0) {
-              nextMode = mode + 1;
-            }
-          }
-          tween = EasingFunctions.easeInOutCubic(iTween0125-modt);
-        }
-        drawPoints(points);
-        points = getInside(points, tween, 10);
+
+      let np;
+      let params = {};
+      if (mode <= 5) {
+        np = 3;
       }
-      else if (mode == 4) {
-        drawPoints(points);
-        tween = EasingFunctions.easeInOutCubic(t);
-        if(tween > 1) {
+      else if (mode == 6) {
+        let tween = EasingFunctions.easeInOutCubic(t / 4);
+        if (tween > 1) {
           tween = 1;
           nextMode = mode + 1;
         }
-        points = getInside(points, 0, p.map(tween, 0, 1, 10, 0));
+        np = p.map(tween * tween, 0, 1, 3, 128);
       }
-      pg.popStyle();
-      pg.popMatrix();
-    }
+      else if (mode == 7) {
+        np = 128;
+        params.waveFunc = function (angle) {
+          let twseed = t * 16 - angle * 2;
+          if (twseed < 0) twseed = 0;
+          let tween = EasingFunctions.easeInOutQuint(twseed);
+          if (tween > 1) {
+            tween = 1;
+          }
+          return Math.sin(angle * 16 - t * 4 * Math.PI) * tween * 0.5;
+        }
+        if (t > 4) {
+          nextMode = mode + 1;
+        }
+      }
+      else if (mode == 8) {
+        np = 128;
+        params.waveFunc = function (angle) {
+          return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
+        }
+      }
+      else if (mode == 9) {
+        np = 128;
+        params.waveFunc = function (angle) {
+          return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
+        }
+      }
+      else if (mode <= 10) {
+        np = 128;
+        params.waveFunc = function (angle) {
+          return Math.sin(angle * 16 - t * 4 * Math.PI) * 0.5;
+        }
+        let tween = EasingFunctions.easeInOutQuint(t / 4.0);
+        if (tween > 1) {
+          tween = 1;
+          nextMode = mode + 1;
+        }
+        params.sy = p.map(tween, 0, 1, 1, 0);
+        params.sz = p.map(tween, 0, 1, 1, 20.0);
+      }
+      else if (mode <= 11) {
+        np = 128;
+        let tween = EasingFunctions.easeInOutQuint(t / 4.0);
+        if (tween > 1) {
+          tween = 1;
+          nextMode = mode + 1;
+        }
+        params.waveFunc = function (angle) {
+          return Math.sin(angle * p.map(tween, 0, 1, 16, 4) - t * p.map(tween, 0, 1, 4, 1) * Math.PI) * 0.5;
+        }
+        params.sy = 0.0;
+        params.sz = 20.0;
+      }
+      else if (mode <= 12) {
+        np = 128;
+        params.waveFunc = function (angle) {
+          return Math.sin(angle * 4 - t * 1 * Math.PI) * 0.5;
+        }
+        params.sy = 0.0;
+        params.sz = 20.0;
+      }
+      else if (mode <= 13) {
+        np = 128;
+        let tween = EasingFunctions.easeInOutQuint(t / 8.0);
+        if (tween > 1) {
+          tween = 1;
+          nextMode = mode + 1;
+        }
+        params.waveFunc = function (angle) {
+          return Math.sin(angle * 4 - t * p.map(tween * tween, 0, 1, 1, 0) * Math.PI) * 0.5;
+        }
+        params.sy = 0.0;
+        params.sz = 20.0;
+      }
+      let points = preparePoints(np, params);
 
-    if (mode <= 4) {
-    }
-    else if (mode <= 8) {
-      drawPoints(points);
-    }
-    else if (mode == 9) {
-      let tween = EasingFunctions.easeInOutCubic(t);
-      if(tween > 1) {
-        tween = 1;
-        nextMode = mode + 1;
+      // pg.hint(p.DISABLE_DEPTH_TEST);
+      // pg.blendMode(p.ADD);
+      for (let i = 0; i < agents.length; i++) {
+        pg.pushMatrix();
+        pg.pushStyle();
+        pg.noFill();
+        let po = 5 - i;
+        if (po < 1) po = 1;
+        let tween = 0;
+        if (mode <= 3) {
+          if (mode == 0) {
+            let modt = (t / Math.pow(2, po)) % 1.0;
+            tween = EasingFunctions.easeInOutCubic(modt);
+            if (i == 0 && (t / Math.pow(2, po)) >= 1.0) {
+              nextMode = mode + 1;
+            }
+          }
+          else if (mode == 1) {
+            let modt = (t / (8 - i));
+            if (modt > iTween0125) {
+              modt = iTween0125;
+              if (i == 0) {
+                nextMode = mode + 1;
+              }
+            }
+            tween = EasingFunctions.easeInOutCubic(modt);
+          }
+          else if (mode == 2) {
+            tween = EasingFunctions.easeInOutCubic(iTween0125);
+            pg.translate(0, 0, 10 * i);
+            pg.rotateZ(0.125 * Math.PI / 3 * i);
+            pg.rotateY(EasingFunctions.easeInOutCubic(agents[i].rotate) * 2 * Math.PI);
+            pg.rotateZ(-0.125 * Math.PI / 3 * i);
+            pg.translate(0, 0, -10 * i);
+            agents[i].rotate += 0.025 / (i + 1);
+            if (agents[i].rotate > 1) {
+              agents[i].rotate = 1;
+              if (i == agents.length - 1) {
+                nextMode = mode + 1;
+              }
+            }
+          }
+          else if (mode == 3) {
+            let modt = (t / (8 - i));
+            if (modt > iTween0125) {
+              modt = iTween0125;
+              if (i == 0) {
+                nextMode = mode + 1;
+              }
+            }
+            tween = EasingFunctions.easeInOutCubic(iTween0125 - modt);
+          }
+          drawPoints(points);
+          points = getInside(points, tween, 10);
+        }
+        else if (mode == 4) {
+          drawPoints(points);
+          tween = EasingFunctions.easeInOutCubic(t);
+          if (tween > 1) {
+            tween = 1;
+            nextMode = mode + 1;
+          }
+          points = getInside(points, 0, p.map(tween, 0, 1, 10, 0));
+        }
+        pg.popStyle();
+        pg.popMatrix();
       }
-      drawPoints(points, {point: tween});
-    }
-    else if (mode <= 11) {
-      drawPoints(points, {point: 1.0});
-    }
-    else if (mode <= 12) {
-      let tween = EasingFunctions.easeInOutCubic(t/8);
-      if(tween > 1) {
-        tween = 1;
-        nextMode = mode + 1;
+
+      if (mode <= 4) {
       }
-      drawPoints(points, {point: 1.0});
-      drawPoints(points, {xLine: tween});
+      else if (mode <= 8) {
+        drawPoints(points);
+      }
+      else if (mode == 9) {
+        let tween = EasingFunctions.easeInOutCubic(t);
+        if (tween > 1) {
+          tween = 1;
+          nextMode = mode + 1;
+        }
+        drawPoints(points, { point: tween });
+      }
+      else if (mode <= 11) {
+        drawPoints(points, { point: 1.0 });
+      }
+      else if (mode <= 12) {
+        let tween = EasingFunctions.easeInOutCubic(t / 8);
+        if (tween > 1) {
+          tween = 1;
+          nextMode = mode + 1;
+        }
+        drawPoints(points, { point: 1.0 });
+        drawPoints(points, { xLine: tween });
+      }
+      else if (mode <= 13) {
+        drawPoints(points, { xLine: 1.0 });
+      }
     }
-    else if (mode <= 13) {
-      drawPoints(points, {xLine: 1.0});
+    else if (mode == 14) {
+      for(let i = 0; i <= 16; i++) {
+        let y = Math.cos(i * Math.PI * 1 / 16) * 0.5;
+        y *= pg.width * 0.04 * 20;
+        pg.line(-pg.width / 2, y, pg.width / 2, y);
+      }
     }
 
     pg.popMatrix();
