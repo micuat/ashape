@@ -368,10 +368,29 @@ var s = function (p) {
       }
     }
     else if (mode == 14) {
+      let tween = EasingFunctions.easeInOutQuint(t / 2.0);
+      if (tween > 1) {
+        tween = 1;
+        nextMode = mode + 1;
+      }
       for(let i = 0; i <= 16; i++) {
         let y = Math.cos(i * Math.PI * 1 / 16) * 0.5;
+        y = p.lerp(y, p.map(i, 0, 16, 0.5, -0.5), tween);
         y *= pg.width * 0.04 * 20;
-        pg.line(-pg.width / 2, y, pg.width / 2, y);
+        pg.line(-pg.width / 2.0, y, pg.width / 2.0, y);
+      }
+    }
+    else if (mode == 15) {
+      let tween = EasingFunctions.easeInOutQuint(t / 2.0);
+      if (tween > 1) {
+        tween = 1;
+        // nextMode = mode + 1;
+      }
+      for(let i = 0; i <= 16; i++) {
+        let y = p.map(i, 0, 16, 0.5, -0.5);
+        y *= pg.width * 0.04 * 20;
+        let c = p.map(tween, 0, 1, 1.0 / 2.0, 1.0 / 8.0);
+        pg.line(-pg.width * c, y, pg.width * c, y);
       }
     }
 
