@@ -49,7 +49,7 @@ var s = function (p) {
     for(let i = 0; i < 11; i++) {
       freqs[i] = new Array(11);
       for(let j = 0; j < 11; j++) {
-        freqs[i][j] = p.random(0.1, 1.0);
+        freqs[i][j] = 100.0 / Math.floor(p.random(10, 100));
       }
     }
   }
@@ -59,17 +59,22 @@ var s = function (p) {
   function drawCell(pg, t, f) {
     let colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
     pg.noStroke();
-    pg.fill(50);
-    pg.ellipse(0, 0, 70, 70);
+    pg.fill(30);
+    // pg.ellipse(0, 0, 65, 65);
     for(let j = 0; j < colors.length; j++) {
       if((Math.floor(t / f)) % 3 != j) continue;
 
-      pg.stroke(colors[j][0], colors[j][1], colors[j][2]);
-      let n = 16 * (j + 1);
+      // pg.stroke(colors[j][0], colors[j][1], colors[j][2]);
+      let n = 8 * (j + 1);
       for(let i = 0; i < n; i++) {
         let r = 10 * (j + 1);
         let x = r * Math.cos(i * Math.PI * 2 / n);
         let y = r * Math.sin(i * Math.PI * 2 / n);
+        pg.stroke(colors[j][0], colors[j][1], colors[j][2], 50);
+        pg.strokeWeight(8);
+        pg.point(x, y);
+        pg.strokeWeight(3);
+        pg.stroke(colors[j][0], colors[j][1], colors[j][2], 200);
         pg.point(x, y);
       }
     }
@@ -85,7 +90,6 @@ var s = function (p) {
     pg.translate(pg.width / 2, pg.height / 2);
 
     for(let i = 0; i < freqs.length; i++) {
-      if(freqs[i] == undefined) continue;
       for(let j = 0; j < freqs[i].length; j++) {
         pg.pushMatrix();
         pg.translate((j - 5) * 70, (i - 5) * 70);
