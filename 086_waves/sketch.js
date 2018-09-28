@@ -33,7 +33,7 @@ var s = function (p) {
   let seq, phase, cycle;
   let pg;
 
-  let mode = 10;
+  let mode = 14;
 
   let agents = [];
 
@@ -150,6 +150,10 @@ var s = function (p) {
     pg.pushMatrix();
     pg.translate(pg.width / 2, pg.height / 2);
 
+    pg.stroke(255);
+    pg.strokeWeight(3);
+    pg.noFill();
+
     if (mode <= 13) {
       if (mode < 5) {
         pg.rotateX(Math.PI / 4);
@@ -176,10 +180,6 @@ var s = function (p) {
       else if (mode <= 13) {
         pg.rotateX(Math.PI - Math.PI * 0.5);
       }
-
-      pg.stroke(255);
-      pg.strokeWeight(3);
-      pg.noFill();
 
       let np;
       let params = {};
@@ -388,8 +388,8 @@ var s = function (p) {
       }
       for(let i = 0; i <= 16; i++) {
         let y = p.map(i, 0, 16, 0.5, -0.5);
-        y *= pg.width * 0.04 * 20;
-        let c = p.map(tween, 0, 1, 1.0 / 2.0, 1.0 / 8.0);
+        y *= pg.width * 0.8;
+        let c = p.map(tween, 0, 1, 0.5, 0.4);
         pg.line(-pg.width * c, y, pg.width * c, y);
       }
     }
@@ -397,38 +397,28 @@ var s = function (p) {
       let tween = EasingFunctions.easeInOutQuint(t / 1.0);
       if (tween > 1) {
         tween = 1;
-        nextMode = mode + 1;
+        // nextMode = mode + 1;
       }
-      pg.rectMode(p.CENTER);
-      pg.stroke(255, 255 * (1 - tween));
-      pg.fill(255, 255 * tween);
       for(let i = 0; i <= 16; i++) {
-        let y = p.map(i, 0, 16, 0.5, -0.5);
-        y *= pg.width * 0.04 * 20;
-        pg.rect(0.0, y, pg.width / 4.0, tween * pg.width * 0.04 * 20 / 16 / 2);
-      }
-    }
-    else if (mode == 17) {
-      pg.rectMode(p.CENTER);
-      pg.noStroke();
-      pg.fill(255, 255);
-      for(let i = 0; i <= 16; i++) {
-        let y = p.map(i, 0, 16, 0.5, -0.5);
-        y *= pg.width * 0.04 * 20;
-        let w = 1;
-        w *= pg.width / 4.0;
-        
-        let tween = EasingFunctions.easeInOutQuint(t * 2.0 - i * 0.125);
-        if (tween < 0) tween = 0;
-        if (tween > 1) {
-          tween = 1;
-          // nextMode = mode + 1;
+        let y = p.map(i, 0, 16, 0.4, -0.4) * pg.width;
+        if(i > 0) {
+          pg.stroke(255, 255);
+          for(let j = 0; j < 16; j++) {
+            let x = p.map(j, 0, 16, 0.4, -0.4) * pg.width;
+            let w = pg.width * 0.8 / 16;
+            let h = w * tween;
+            if(p.noise(i * 0.3, j * 0.2) > 0.5) {
+              pg.line(x - w, y, x, y + h);
+            }
+            else {
+              pg.line(x - w, y + h, x, y);
+            }
+          }
         }
-        w *= p.map(tween, 0, 1, 1, 0.5);
-        pg.pushMatrix();
-        pg.translate(0.0, y);
-        pg.rect(0.0, 0.0, w, pg.width * 0.04 * 20 / 16 / 2);
-        pg.popMatrix();
+        else {
+          pg.stroke(255, 255 * (1 - tween));
+          pg.line(-pg.width * 0.4, y, pg.width * 0.4, y);
+        }
       }
     }
 
