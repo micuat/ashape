@@ -165,8 +165,8 @@ var s = function (p) {
     pg.strokeWeight(3);
     pg.noFill();
 
-    if (mode <= 13) {
-      if (mode < 5) {
+    if (mode <= 13 || mode == 19) {
+      if (mode < 5 || mode == 19) {
         pg.rotateX(Math.PI / 4);
       }
       else if (mode == 5) {
@@ -279,6 +279,9 @@ var s = function (p) {
         params.sy = 0.0;
         params.sz = 20.0;
       }
+      else if (mode == 19) {
+        np = 3;
+      }
       let points = preparePoints(np, params);
 
       // pg.hint(p.DISABLE_DEPTH_TEST);
@@ -289,7 +292,7 @@ var s = function (p) {
         pg.noFill();
         let po = 5 - i;
         if (po < 1) po = 1;
-        let tween = 0;
+        let tween = 0;  
         if (mode <= 3) {
           if (mode == 0) {
             let modt = (t / Math.pow(2, po)) % 1.0;
@@ -344,6 +347,15 @@ var s = function (p) {
             nextMode = mode + 1;
           }
           points = getInside(points, 0, p.map(tween, 0, 1, 10, 0));
+        }
+        else if (mode == 19) {
+          drawPoints(points);
+          tween = EasingFunctions.easeInOutCubic(t);
+          if (tween > 1) {
+            tween = 1;
+            nextMode = 0;
+          }
+          points = getInside(points, 0, p.map(tween, 0, 1, 0, 10));
         }
         pg.popStyle();
         pg.popMatrix();
@@ -454,7 +466,7 @@ var s = function (p) {
     else if (mode == 17) {
       let tween = EasingFunctions.easeInOutQuint(t / 2.0);
       if (tween > 1) {
-        // nextMode = mode + 1;
+        nextMode = mode + 1;
       }
       for(let i = 1; i <= 16; i++) {
         let y = p.map(i, 0, 16, 0.4, -0.4) * pg.width;
@@ -482,6 +494,35 @@ var s = function (p) {
           pg.line(-pg.width * 0.4, y, pg.width * 0.4, y);
         }
       }
+    }
+    else if (mode == 18) {
+      let rt = EasingFunctions.easeInOutCubic(t);
+      if (rt > 1) {
+        rt = 1;
+      }
+      pg.rotateX(Math.PI / 4 * rt);
+
+      let tween = EasingFunctions.easeInOutQuint(t / 2.0);
+      if (tween > 1) {
+        nextMode = mode + 1;
+      }
+      pg.beginShape();
+      let x, y;
+      let nx, ny;
+      x = 0;
+      nx = 0;
+      y = p.map(4, 0, 16, 0.4, -0.4) * pg.width;
+      ny = pg.width * 0.4 * Math.cos(0 * 2 * Math.PI / 3);
+      pg.vertex(x, p.lerp(y, ny, tween));
+
+      x = p.map(0, 0, 16, 0.4, -0.4) * pg.width;
+      nx = pg.width * 0.4 * Math.sin(1 * 2 * Math.PI / 3);
+      y = p.map(12, 0, 16, 0.4, -0.4) * pg.width;
+      ny = pg.width * 0.4 * Math.cos(1 * 2 * Math.PI / 3);
+      pg.vertex(p.lerp(x, nx, tween), p.lerp(y, ny, tween));
+      pg.vertex(-p.lerp(x, nx, tween), p.lerp(y, ny, tween));
+
+      pg.endShape(p.CLOSE);
     }
 
     pg.popMatrix();
