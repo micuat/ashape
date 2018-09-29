@@ -33,7 +33,7 @@ var s = function (p) {
   let seq, phase, cycle;
   let pg;
 
-  let mode = 16;
+  let mode = 0;
 
   let agents = [];
 
@@ -408,6 +408,14 @@ var s = function (p) {
       if (tween > 1) {
         tween = 1;
         nextMode = mode + 1;
+
+        for (let i = 0; i <= 16; i++) {
+          for (let j = 0; j <= 16; j++) {
+            cells[i][j] = {prev: 0,
+            next: p.random(1.0) > 0.5 ? 1 : -1}
+          }
+        }
+        count = 0;
       }
       for(let i = 0; i <= 16; i++) {
         let y = p.map(i, 0, 16, 0.5, -0.5);
