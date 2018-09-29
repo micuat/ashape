@@ -33,11 +33,14 @@ var s = function (p) {
   let seq, phase, cycle;
   let pg;
 
-  let mode = 14;
+  let mode = 16;
 
   let agents = [];
 
   let iTween0125;
+
+  let cells = [];
+  let count = 0;
 
   function Agent() {
     this.rotate = 0;
@@ -58,6 +61,14 @@ var s = function (p) {
     for (let i = 0; i < 8; i++) {
       agents.push(new Agent());
       agents[i].i = i;
+    }
+
+    for (let i = 0; i <= 16; i++) {
+      cells.push([]);
+      for (let j = 0; j <= 16; j++) {
+        cells[i][j] = {prev: 0,
+        next: p.random(1.0) > 0.5 ? 1 : -1}
+      }
     }
 
     for (let i = 0; i < 1; i += 0.01) {
@@ -396,8 +407,26 @@ var s = function (p) {
     else if (mode == 16) {
       let tween = EasingFunctions.easeInOutQuint(t / 1.0);
       if (tween > 1) {
-        tween = 1;
-        // nextMode = mode + 1;
+        count++;
+        if (count > 2) {
+          nextMode = mode + 1;
+        }
+        tween = 0;
+        for(let i = 0; i < cells.length; i++) {
+          for(let j = 0; j < cells[0].length; j++) {
+            cells[i][j].prev = cells[i][j].next;
+            if(count >= 1 && (i + 4) - j == 1 && (i + 4) > 8) {
+              cells[i][j].next = -1;
+            }
+            else if(count >= 1 && (i + 4) + j == 16 && (i + 4) > 8) {
+              cells[i][j].next = 1;
+            }
+            else {
+              cells[i][j].next = p.random(1.0) > 0.5 ? 1 : -1;
+            }
+          }
+        }
+        startTime = p.millis();
       }
       for(let i = 0; i <= 16; i++) {
         let y = p.map(i, 0, 16, 0.4, -0.4) * pg.width;
@@ -406,17 +435,50 @@ var s = function (p) {
           for(let j = 0; j < 16; j++) {
             let x = p.map(j, 0, 16, 0.4, -0.4) * pg.width;
             let w = pg.width * 0.8 / 16;
-            let h = w * tween;
-            if(p.noise(i * 0.3, j * 0.2) > 0.5) {
-              pg.line(x - w, y, x, y + h);
-            }
-            else {
-              pg.line(x - w, y + h, x, y);
-            }
+            let h = w;
+            let p0 = cells[i][j].prev == 1 ? h : 0;
+            let p1 = cells[i][j].prev == -1 ? h : 0;
+            let h0 = cells[i][j].next == 1 ? h : 0;
+            let h1 = cells[i][j].next == -1 ? h : 0;
+            pg.line(x - w, y + p.lerp(p0, h0, tween), x, y + p.lerp(p1, h1, tween));
           }
         }
         else {
-          pg.stroke(255, 255 * (1 - tween));
+          if (count == 0) {
+            pg.stroke(255, 255 * (1 - tween));
+            pg.line(-pg.width * 0.4, y, pg.width * 0.4, y);
+          }
+        }
+      }
+    }
+    else if (mode == 17) {
+      let tween = EasingFunctions.easeInOutQuint(t / 2.0);
+      if (tween > 1) {
+        // nextMode = mode + 1;
+      }
+      for(let i = 1; i <= 16; i++) {
+        let y = p.map(i, 0, 16, 0.4, -0.4) * pg.width;
+        for(let j = 0; j < 16; j++) {
+          pg.pushMatrix();
+          let x = p.map(j, 0, 16, 0.4, -0.4) * pg.width;
+          let w = pg.width * 0.8 / 16;
+          let h = w;
+          let p0 = cells[i][j].prev == 1 ? h : 0;
+          let p1 = cells[i][j].prev == -1 ? h : 0;
+          pg.stroke(255, 255);
+          if((i + 4) - j == 1 && (i + 4) > 8) {
+          }
+          else if((i + 4) + j == 16 && (i + 4) > 8) {
+          }
+          else {
+            pg.translate(pg.width * tween * (1-p0/h), pg.width * tween * (1-p0/h));
+            pg.translate(pg.width * tween * (1-p1/h), pg.width * tween * -(1-p1/h));
+          }
+          pg.line(x - w, y + p0, x, y + p1);
+          pg.popMatrix();
+        }
+        if (i == 12) {
+          pg.stroke(255, 255 * tween);
           pg.line(-pg.width * 0.4, y, pg.width * 0.4, y);
         }
       }
