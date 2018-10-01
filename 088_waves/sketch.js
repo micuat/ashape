@@ -48,7 +48,7 @@ var s = function (p) {
   function drawLine(pg, t) {
     let points = [];
     let n = 1000;
-    // pg.beginShape();
+    pg.beginShape(p.LINES);
     let tween = (t / 4.0) % 2.0;
     if(tween > 1.0) tween = 2.0 - tween;
     tween = EasingFunctions.easeInOutQuint(tween);
@@ -56,7 +56,7 @@ var s = function (p) {
     let tmod = p.map(tween, 0, 1, 1, 4);
     for(let i = 0; i <= n + 1; i++) {
       let angle = p.map(i, 0, n, -1 * Math.PI, Math.PI) * tmod + (tmod+1) * Math.PI;
-      let r = 200;
+      let r = pg.width / 4.0;
       let x, y;
       if(cycle < 1.0) {
         x = r * Math.cos(angle / tmod);
@@ -66,11 +66,14 @@ var s = function (p) {
         x = r * Math.cos(angle);
         y = r * Math.sin(angle / tmod);
       }
-      // pg.vertex(x, y);
+      // if(x < 0 && i % 4 == 0) {
+      //   pg.vertex(-pg.width/2, y);
+      //   pg.vertex(x, y);
+      // }
       points.push({x: x, y: y});
     }
 
-    // pg.endShape();
+    pg.endShape();
 
     pg.beginShape();
     tween *= 2.0;
@@ -83,12 +86,9 @@ var s = function (p) {
       let v = p.createVector(x, y);
       let theta = Math.atan2(dy, dx);
       v.rotate(theta);
-      x += points[i].x;
-      y += points[i].y;
       pg.vertex(v.x + points[i].x, v.y + points[i].y);
     }
     pg.endShape();
-
   }
 
   function drawPg(pg, t) {
