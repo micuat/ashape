@@ -49,22 +49,39 @@ var s = function (p) {
 
   let transFuncs = [
     function (pg, tween) {
-      let y = p.map(EasingFunctions.easeInCubic(tween), 0, 1, 0, -pg.width / 3.0);
+      let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, -pg.width / 3.0);
       pg.translate(0, y);
     },
     function (pg, tween) {
-      let y = p.map(EasingFunctions.easeInCubic(tween), 0, 1, 0, pg.width / 3.0);
+      let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, pg.width / 3.0);
       pg.translate(0, y);
     },
   ];
-  let transFunc = transFuncs[0];
+  let transFuncIndex = 0;
+  let boxFuncs = [
+    function (pg, tween) {
+      pg.stroke(255);
+      pg.fill(255);
+      pg.ellipse(0, 0, 30, 30);
+    },
+    function (pg, tween) {
+      pg.stroke(255);
+      pg.fill(255);
+      let x = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, pg.width / 3.0);
+      pg.ellipse(-x, 0, 30, 30);
+      pg.ellipse( x, 0, 30, 30);
+      pg.line(-x, 0, x, 0);
+    },
+  ];
+  let boxFuncIndex = 0;
   function drawPg(pg, t) {
-    let tmod = t / 2.0;
+    let tmod = t / 1.0;
     let seq = Math.floor(tmod * 2.0);
     tmod = tmod % 1.0;
     if(seq != lastSeq) {
       if (seq % 2 == 0) {
-        transFunc = p.random(transFuncs);
+        transFuncIndex = Math.floor(p.random(transFuncs.length));
+        boxFuncIndex = Math.floor(p.random(boxFuncs.length));
       }
       if (seq % 2 == 1) {
         let m = new Packages.oscP5.OscMessage("/s_new");
@@ -73,11 +90,13 @@ var s = function (p) {
         m.add(0);
         m.add(0);
         m.add("freq");
-        // m.add(440.0);
-        p.addFloat(m, 440);
+        p.addFloat(m, 880 + 880 * transFuncIndex);
         m.add("pos");
-        // m.add(1.0);
         p.addFloat(m, 0.0);
+        m.add("delay");
+        p.addFloat(m, 0.012);
+        m.add("feedback");
+        p.addFloat(m, 0.001 + 0.2 * (boxFuncIndex));
         p.oscP5.send(m, remoteLocation);
       }
     }
@@ -85,15 +104,13 @@ var s = function (p) {
     pg.beginDraw();
     pg.background(0);
 
-    pg.stroke(255);
-    pg.fill(255);
     pg.translate(pg.width / 2, pg.height / 2);
 
     let tween = tmod;
     if(tween > 0.5) tween = 1 - tween;
     tween *= 2;
-    transFunc(pg, tween);
-    pg.ellipse(0, 0, 50, 50);
+    transFuncs[transFuncIndex](pg, tween);
+    boxFuncs[boxFuncIndex](pg, tween);
 
     pg.endDraw();
 
