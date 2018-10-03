@@ -55,7 +55,7 @@ var s = function (p) {
           i: i,
           j: j,
           f: p.random(5, 10),
-          lastSeq: -1
+          lastSeq: 0
         };
       }
     }
