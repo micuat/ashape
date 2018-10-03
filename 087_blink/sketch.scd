@@ -1,6 +1,6 @@
 (
 SynthDef("withProc", { arg freq=440, pos=0, delay=0.048, feedback=0.2;
-		var dur = 1.0, amp = 1.0, osc, attTime = (0.4*dur), relTime = (0.4*dur), env, envgen, s, z, y;
+		var dur = 0.1, amp = 1.0, osc, attTime = (0.4*dur), relTime = (0.4*dur), env, envgen, s, z, y;
 
 		//envelope to control duration
 		env = Env([0, amp, amp, 0], [attTime, dur-(attTime+relTime), relTime], 1);
