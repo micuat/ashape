@@ -34,6 +34,8 @@ var s = function (p) {
   let pg;
   let freqs;
 
+  let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
+
   p.setup = function () {
     name = p.folderName;
 
@@ -49,20 +51,40 @@ var s = function (p) {
     for(let i = 0; i < 11; i++) {
       freqs[i] = new Array(11);
       for(let j = 0; j < 11; j++) {
-        freqs[i][j] = 100.0 / Math.floor(p.random(10, 100));
+        freqs[i][j] = {
+          i: i,
+          j: j,
+          f: p.random(5, 10),
+          lastSeq: -1
+        };
       }
     }
   }
 
   function getTime() { return (p.millis() - startTime) * 0.001 };
 
-  function drawCell(pg, t, f) {
+  function drawCell(pg, t, freq) {
     let colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
     pg.noStroke();
     pg.fill(30);
     // pg.ellipse(0, 0, 65, 65);
     for(let j = 0; j < colors.length; j++) {
-      if((Math.floor(t / f)) % 3 != j) continue;
+      if((Math.floor(t / freq.f)) % 3 != j) continue;
+
+      if(j != freq.lastSeq) {
+        let m = new Packages.oscP5.OscMessage("/s_new");
+        m.add("withProc");
+        m.add(-1);
+        m.add(0);
+        m.add(0);
+        m.add("freq");
+        p.addFloat(m, p.map(j, 0, 3, 300, 600));
+        m.add("pos");
+        p.addFloat(m, 0.0);
+        m.add("delay");
+        p.addFloat(m, 0.012);
+        p.oscP5.send(m, remoteLocation);
+      }
 
       // pg.stroke(colors[j][0], colors[j][1], colors[j][2]);
       let n = 8 * (j + 1);
@@ -77,6 +99,8 @@ var s = function (p) {
         pg.stroke(colors[j][0], colors[j][1], colors[j][2], 200);
         pg.point(x, y);
       }
+
+      freq.lastSeq = j;
     }
   }
 
