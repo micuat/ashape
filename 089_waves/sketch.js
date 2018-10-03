@@ -48,40 +48,65 @@ var s = function (p) {
   let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
 
   let transFuncs = [
-    function (pg, tween) {
-      let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, -pg.width / 3.0);
-      pg.translate(0, y);
+    {
+      f: function (pg, tween) {
+        let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, -pg.width / 3.0);
+        pg.translate(0, y);
+      },
+      audio: {
+        freq: 880
+      }
     },
-    function (pg, tween) {
-      let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, pg.width / 3.0);
-      pg.translate(0, y);
+    {
+      f: function (pg, tween) {
+        let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, pg.width / 3.0);
+        pg.translate(0, y);
+      },
+      audio: {
+        freq: 880*2
+      }
     },
   ];
-  let transFuncIndex = 0;
+  let transFunc = transFuncs[0];
   let boxFuncs = [
-    function (pg, tween) {
-      pg.stroke(255);
-      pg.fill(255);
-      pg.ellipse(0, 0, 30, 30);
+    {
+      f: function (pg, tween) {
+        pg.stroke(255);
+        pg.fill(255);
+        let x = pg.width / 4.0;
+        let r = x * 0.1;
+        pg.ellipse(-x, 0, r, r);
+        pg.ellipse( x, 0, r, r);
+        pg.line(-x, 0, x, 0);
+      },
+      audio: {
+        feedback: 0.001
+      }
     },
-    function (pg, tween) {
-      pg.stroke(255);
-      pg.fill(255);
-      let x = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, pg.width / 3.0);
-      pg.ellipse(-x, 0, 30, 30);
-      pg.ellipse( x, 0, 30, 30);
-      pg.line(-x, 0, x, 0);
+    {
+      f: function (pg, tween) {
+        pg.stroke(255);
+        pg.fill(255);
+        let x = pg.width / 4.0;
+        let r = x * 0.1;
+        pg.ellipse(-x, 0, r, r);
+        pg.ellipse( x, 0, r, r);
+        pg.line(-x, 0, x, 0);
+      },
+      audio: {
+        feedback: 0.2
+      }
     },
   ];
-  let boxFuncIndex = 0;
+  let boxFunc = boxFuncs[0];
   function drawPg(pg, t) {
     let tmod = t / 1.0;
     let seq = Math.floor(tmod * 2.0);
     tmod = tmod % 1.0;
     if(seq != lastSeq) {
       if (seq % 2 == 0) {
-        transFuncIndex = Math.floor(p.random(transFuncs.length));
-        boxFuncIndex = Math.floor(p.random(boxFuncs.length));
+        transFunc = transFuncs[Math.floor(p.random(transFuncs.length))];
+        boxFunc = boxFuncs[Math.floor(p.random(boxFuncs.length))];
       }
       if (seq % 2 == 1) {
         let m = new Packages.oscP5.OscMessage("/s_new");
@@ -89,14 +114,18 @@ var s = function (p) {
         m.add(-1);
         m.add(0);
         m.add(0);
-        m.add("freq");
-        p.addFloat(m, 880 + 880 * transFuncIndex);
+        for(let key in transFunc.audio) {
+          m.add(key);
+          p.addFloat(m, transFunc.audio[key]);
+        }
+        for(let key in boxFunc.audio) {
+          m.add(key);
+          p.addFloat(m, boxFunc.audio[key]);
+        }
         m.add("pos");
         p.addFloat(m, 0.0);
         m.add("delay");
         p.addFloat(m, 0.012);
-        m.add("feedback");
-        p.addFloat(m, 0.001 + 0.2 * (boxFuncIndex));
         p.oscP5.send(m, remoteLocation);
       }
     }
@@ -106,11 +135,14 @@ var s = function (p) {
 
     pg.translate(pg.width / 2, pg.height / 2);
 
+    pg.line(-pg.width / 2, -pg.height / 3, pg.width / 2, -pg.height / 3);
+    pg.line(-pg.width / 2, pg.height / 3, pg.width / 2, pg.height / 3);
+
     let tween = tmod;
     if(tween > 0.5) tween = 1 - tween;
     tween *= 2;
-    transFuncs[transFuncIndex](pg, tween);
-    boxFuncs[boxFuncIndex](pg, tween);
+    transFunc.f(pg, tween);
+    boxFunc.f(pg, tween);
 
     pg.endDraw();
 
@@ -125,4 +157,4 @@ var s = function (p) {
   }
 };
 
-var p084 = new p5(s);
+var p089 = new p5(s);
