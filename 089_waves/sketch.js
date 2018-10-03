@@ -73,7 +73,7 @@ var s = function (p) {
       f: function (pg, tween) {
         pg.stroke(255);
         pg.fill(255);
-        let x = pg.width / 4.0;
+        let x = pg.width / 8.0;
         let r = x * 0.1;
         pg.ellipse(-x, 0, r, r);
         pg.ellipse( x, 0, r, r);
@@ -87,7 +87,7 @@ var s = function (p) {
       f: function (pg, tween) {
         pg.stroke(255);
         pg.fill(255);
-        let x = pg.width / 4.0;
+        let x = pg.width / 8.0;
         let r = x * 0.1;
         pg.ellipse(-x, 0, r, r);
         pg.ellipse( x, 0, r, r);
