@@ -43,6 +43,7 @@ var s = function (p) {
           let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, -pg.width / 3.0);
           pg.translate(0, y);
         },
+        name: "up",
         audio: {
           freq: p.map(index, -2, 2, 1760, 1760 * 2)
         }
@@ -52,6 +53,7 @@ var s = function (p) {
           let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, pg.width / 3.0);
           pg.translate(0, y);
         },
+        name: "down",
         audio: {
           freq: p.map(index, -2, 2, 440, 440 * 2)
         }
@@ -69,6 +71,18 @@ var s = function (p) {
           pg.ellipse( x, 0, r, r);
           pg.line(-x, 0, x, 0);
         },
+        f0: function (pg, tween, tfunc) {
+          pg.noStroke();
+          pg.fill(255 * EasingFunctions.easeOutQuint(tween));
+          let x = pg.width / 8.0;
+          let y = pg.width / 3.0;
+          if(tfunc.name == "up") {
+            pg.rect(-x, -y, x*2, -pg.width);
+          }
+          else {
+            pg.rect(-x, y, x*2, pg.width);
+          }
+        },
         audio: {
           feedback: 0.001
         }
@@ -82,6 +96,18 @@ var s = function (p) {
           pg.ellipse(-x, 0, r, r);
           pg.ellipse( x, 0, r, r);
           pg.line(-x, 0, x, 0);
+        },
+        f0: function (pg, tween, tfunc) {
+          pg.noStroke();
+          pg.fill(255 * EasingFunctions.easeInQuint(tween));
+          let x = pg.width / 8.0;
+          let y = pg.width / 3.0;
+          if(tfunc.name == "up") {
+            pg.rect(-x, -y, x*2, -pg.width);
+          }
+          else {
+            pg.rect(-x, y, x*2, pg.width);
+          }
         },
         audio: {
           feedback: 0.2
@@ -132,6 +158,9 @@ var s = function (p) {
       let tween = tmod;
       if(tween > 0.5) tween = 1 - tween;
       tween *= 2;
+      let bTween = tween;
+      if(seq % 2 == 0) bTween = 0;
+      boxFunc.f0(pg, bTween, transFunc);
       transFunc.f(pg, tween);
       boxFunc.f(pg, tween);
 
