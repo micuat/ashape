@@ -61,6 +61,8 @@ var s = function (p) {
       },
       {
         f: function (pg, tween) {
+          let y = p.map(EasingFunctions.easeInQuad(tween), 0, 1, 0, Math.PI / 2);
+          pg.rotate(y);
         },
         name: "none",
         audio: {
@@ -153,6 +155,16 @@ var s = function (p) {
             p.addFloat(m, 0.0);
             m.add("delay");
             p.addFloat(m, 0.012);
+            p.oscP5.send(m, remoteLocation);
+          }
+          else {
+            let m = new Packages.oscP5.OscMessage("/s_new");
+            m.add("perc");
+            m.add(-1);
+            m.add(0);
+            m.add(0);
+            m.add("freq");
+            p.addFloat(m, p.map(this.index, -1, 1, 500, 10000));
             p.oscP5.send(m, remoteLocation);
           }
         }
