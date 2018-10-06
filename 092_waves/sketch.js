@@ -49,12 +49,23 @@ var s = function (p) {
 
   function drawPg(pg, t) {
     pg.beginDraw();
-    pg.background(0);
+    pg.background(0, 30);
 
     pg.translate(pg.width * 0.5, pg.height * 0.5);
-    pg.fill(255);
-    let x = Math.sin(t * 0.5 * Math.PI) * pg.width / 3.0;
-    pg.ellipse(x, 0, 50, 50);
+    pg.stroke(255);
+    pg.strokeWeight(1);
+    let sin = Math.sin(t * 0.25 * Math.PI);
+    sin *= EasingFunctions.easeInOutQuint(Math.abs(sin));
+    let x = sin * pg.width / 3.0;
+
+    for(let i = 0; i < 30; i++) {
+      let y = p.randomGaussian(0, 0.1 * (1 - Math.abs(sin))) * pg.width;
+      pg.point(x, y);
+      pg.line(-pg.width / 3.0, 0, x, y);
+      pg.line(pg.width / 3.0, 0, x, y);
+    }
+    pg.line(-pg.width / 2.0, 0, -pg.width / 3.0, 0);
+    pg.line(pg.width / 2.0, 0, pg.width / 3.0, 0);
 
     if(p.frameCount % 1 == 0) {
       let m = new Packages.oscP5.OscMessage("/s_new");
@@ -63,7 +74,9 @@ var s = function (p) {
       m.add(0);
       m.add(0);
       m.add("freq");
-      p.addFloat(m, p.random(0, 100) + p.map(Math.abs(x), 0, pg.width / 3.0, 5000, 500));
+      p.addFloat(m, p.random(0, 100) + p.map(Math.abs(sin), 0, 1, 5000, 100));
+      m.add("pan");
+      p.addFloat(m, sin);
       p.oscP5.send(m, remoteLocation);
     }
 
