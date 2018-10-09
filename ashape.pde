@@ -37,7 +37,7 @@ import netP5.*;
 
 import geomerative.*;
 
-OscP5 oscP5;
+public OscP5 oscP5;
 NetAddress myRemoteLocation;
 
 private static ScriptEngineManager engineManager;
@@ -58,12 +58,17 @@ public PApplet that = this;
 
 public Icosahedron ico = new Icosahedron(75);
 
-public String folderName = "080_waves";
+public String folderName = "094_waves";
+// public String folderName = "snue_slides";
 
 boolean libInited = false;
 
 float frameRate() {
   return frameRate;
+}
+
+public void addFloat(OscMessage m, float f) {
+  m.add(f);
 }
 
 void setup() {
@@ -78,6 +83,7 @@ void setup() {
   RG.init(this);
 
   size(400, 400, P3D);
+  // fullScreen(P3D);
   //size(850, 1150, PDF, "../CC_97_Book_of_Pi_2/bookofpi-10million-text.pdf");
   //gPdf = (PGraphicsPDF)g;
   surface.setResizable(true);
