@@ -33,17 +33,88 @@ var S095 = function (p) {
   let pg;
   let lastSeq;
   let cycle = 4.0;
-  let mode = 0;
-  let rot = 0;
-  let line = 0;
   
   let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
 
   pg = p.createGraphics(800, 800, p.P3D);
 
-  function Agent() {
+  function Agent(i, j) {
+    this.i = i;
+    this.j = j;
     this.n = 4;
+    this.isTriggered = false;
+    this.isChanged = false;
+    this.bounce = 0;
+    this.init = function () {
+      this.n = p.random([3, 4, 5]);
+    }
+    this.init();
+    this.trigger = function () {
+      if(this.isTriggered == false) {
+        this.isTriggered = true;
+        this.isChanged = false;
+        this.bounce = p.millis() * 0.001;
+      }
+    }
+    this.update = function (t) {
+      if(Math.floor((t * 9 / cycle) % 9) == this.i * 3 + this.j) {
+        this.trigger();
+      }
+    }
     this.draw = function (seq) {
+      let h1 = -pg.width * 0.3;
+      let h00 = pg.width * 0.3;
+      let h0 = h00;
+      if(this.isTriggered) {
+        let t = p.millis() * 0.001 - this.bounce;
+        if(t > 1) {
+          this.isTriggered = 0;
+        }
+        if(t < 0.5) {
+          let m = new Packages.oscP5.OscMessage("/s_new");
+          m.add("grain");
+          m.add(-1);
+          m.add(0);
+          m.add(0);
+          m.add("freq");
+          p.addFloat(m, p.random(0, 500) + 3000);
+          m.add("pan");
+          p.addFloat(m, 0);
+          m.add("vol");
+          let vol = Math.cos(t * 2 * Math.PI);
+          if(vol < 0) vol = 0;
+          p.addFloat(m, vol);
+          p.oscP5.send(m, remoteLocation);  
+        }
+        if(t > 0.5) {
+          if(this.isChanged == false) {
+            this.init();
+            this.isChanged = true;
+            let m = new Packages.oscP5.OscMessage("/s_new");
+            m.add("signal");
+            m.add(-1);
+            m.add(0);
+            m.add(0);
+            let freq0 = 10000 - this.n * 1000;
+            m.add("freq0");
+            p.addFloat(m, freq0);
+            let feedback = 0.001;
+            m.add("feedback");
+            p.addFloat(m, feedback);
+            m.add("pos");
+            p.addFloat(m, 0.0);
+            let delay = 0.012;
+            m.add("delay");
+            p.addFloat(m, delay);
+            m.add("vol");
+            let vol = 0.1;
+            p.addFloat(m, vol);
+            p.oscP5.send(m, remoteLocation);
+          }
+        }
+        h0 = p.map(Math.cos(t * Math.PI * 2), 1, -1, h00, h1);
+      }
+
       let points = [];
       for(let i = 0; i < this.n; i++) {
         let angle = i / this.n * 2.0 * Math.PI - Math.PI / this.n + Math.PI / 2;
@@ -54,12 +125,6 @@ var S095 = function (p) {
       let ymin = points[0].y;
       let ymax = points[Math.floor(this.n/2+1)].y;
       let r = pg.width * 0.1 / (ymax - ymin);
-      let h1 = -pg.width * 0.3;
-      let h00 = pg.width * 0.3;
-      let h0 = h00;
-      if(seq % 2 == 1) {
-        h0 = p.map(Math.sin(p.millis() * 0.003), -1, 1, h00, h1);
-      }
       for(let i = 0; i < points.length; i++) {
         pg.beginShape();
         pg.vertex(points[i].x * r, -(points[i].y - ymin + 0.5) * r, h1);
@@ -86,23 +151,20 @@ var S095 = function (p) {
   for(let i = 0; i < 3; i++) {
     digits.push([]);
     for(let j = 0; j < 3; j++) {
-      digits[i][j] = new Agent();
+      digits[i][j] = new Agent(i, j);
     }
   }
 
   function drawPg(pg, t) {
     let seq = Math.floor(t / cycle);
     pg.beginDraw();
-    pg.blendMode(p.ADD);
+    pg.blendMode(p.BLEND);
     pg.background(0);
 
     pg.translate(pg.width * 0.5, pg.height * 0.5);
-    pg.stroke(255);
-    pg.strokeWeight(1);
 
     if (seq != lastSeq) {
       mode = p.random([0, 1]);
-      rot = 0;//p.random([0, 1]);
       line = p.random([0, 1]);
     }
 
@@ -117,41 +179,17 @@ var S095 = function (p) {
 
       for(let i = 0; i < 3; i++) {
         for(let j = 0; j < 3; j++) {
-          if((p.frameCount/5) % 3 == j) {
-
-            if(i == 2) {
-              let m = new Packages.oscP5.OscMessage("/s_new");
-              m.add("signal");
-              m.add(-1);
-              m.add(0);
-              m.add(0);
-              let freq0 = 1000;
-              let freq1 = 200;
-              m.add("freq0");
-              p.addFloat(m, freq0);
-              m.add("freq1");
-              p.addFloat(m, freq1);
-              let feedback = 0.2;
-              m.add("feedback");
-              p.addFloat(m, feedback);
-              m.add("pos");
-              p.addFloat(m, 0.0);
-              let delay = 0.012 * (digits[0][j] + digits[1][j] + digits[2][j]) / 12.0;
-              m.add("delay");
-              p.addFloat(m, delay);
-              p.oscP5.send(m, remoteLocation);
-            }
-          }
+          digits[i][j].update(t);
         }
       }    
     }
 
     pg.stroke(255);
     pg.strokeWeight(2);
-    pg.fill(0);
+    pg.fill(128);
     pg.rotateX(Math.PI / 3);
     pg.rotateZ(ph * Math.PI * 2.0);
-    // pg.lights();
+    pg.lights();
     // pg.pointLight(255, 255, 255, 0, 0, 100);
     for(let k = -1; k <= 1; k++) {
       pg.pushMatrix();
@@ -163,7 +201,7 @@ var S095 = function (p) {
         pg.popMatrix();
       }
       pg.translate(0, 0, -pg.width * 0.3 - 5)
-      pg.box(pg.width, pg.width * 0.2 * 0.8, 10)
+      pg.box(pg.width * 0.6, pg.width * 0.2 * 0.8, 10)
       pg.popMatrix();  
     }    
     lastSeq = seq;
