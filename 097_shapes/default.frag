@@ -200,7 +200,7 @@ void main(void) {
 	vec3 diffuse			= getDiffuse( diffuseColor, uRoughness, NoV, NoL, VoH );
 	vec3 specular			= NoL * ( distribution * fresnel * geom );
 
-	vec3 color				= uLightColor;// * ( diffuse + specular );
+	vec3 color				= uLightColor * ( diffuse + specular );
 
 	float attenuation		= getAttenuation( vlp, vPosition, uLightRadius );
 	color					*= attenuation;
@@ -216,11 +216,11 @@ void main(void) {
 
   // Only render shadow if fragment is facing the light
   if(lightIntensity > 0.5) { 
-    float visibility = 18.0; 
+    float visibility = 9.0; 
 
     // I used step() instead of branching, should be much faster this way
     for(int n = 0; n < 9; ++n)
-      visibility += step(shadowCoordProj.z, unpackDepth(texture2D(shadowMap, shadowCoordProj.xy + poissonDisk[n] / 128.0)));
+      visibility += step(shadowCoordProj.z, unpackDepth(texture2D(shadowMap, shadowCoordProj.xy + poissonDisk[n] / 256.0))); 
 
     gl_FragColor = vec4(color * min(visibility * 0.05556, lightIntensity), vertColor.a); 
   } else
