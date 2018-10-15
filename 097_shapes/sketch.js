@@ -39,6 +39,8 @@ var s = function (p) {
   let pg;
   let startFrame;
   let lightDirection = { x: 0.0, y: 0.0, z: 0.0 };
+  let objPos = { x: 0.0, y: 0.0, z: 0.0 };
+  let rot = 0;
 
   function initShadowPass() {
     shadowMap = p.createGraphics(2048, 2048, p.P3D);
@@ -146,6 +148,8 @@ var s = function (p) {
         points[i][j] = {x: x, y: y, z: z};
       }
     }
+    canvas.pushMatrix();
+    // canvas.translate(objPos.x, objPos.y, objPos.z);
     for(let i = 0; i < points.length - 2; i++) {
       canvas.beginShape(p.TRIANGLE_STRIP);
       for(let j = 0; j < points[0].length; j++) {
@@ -163,6 +167,7 @@ var s = function (p) {
       }
       canvas.endShape();
     }
+    canvas.popMatrix();
 
     canvas.fill(50, 200, 0, 255);
     canvas.translate(0, 0, -30);
@@ -199,8 +204,12 @@ var s = function (p) {
     p.camera(cameraPosition.x, cameraPosition.y, cameraPosition.z, 0.0, 0.0, 0, 0, 1, 0);
     p.background(0);
 
-    let lx = 150 * Math.cos(p.millis() * 0.001);
-    let ly = 150 * Math.sin(p.millis() * 0.001);
+    // let lx = 150 * Math.cos(p.millis() * 0.001);
+    // let ly = 150 * Math.sin(p.millis() * 0.001);
+    // let lz = 120;
+    rot = p.lerp(rot, p.map(objPos.x, 99, 200, 0, Math.PI) + Math.PI / 2, 0.1);
+    let lx = 150 * Math.cos(rot);
+    let ly = 150 * Math.sin(rot);
     let lz = 120;
     lightPos.set(lx, ly, lz);
 
@@ -221,6 +230,11 @@ var s = function (p) {
     renderLandscape(p.g, false);
   }
 
+  p.oscEvent = function (m) {
+    if (m.checkAddrPattern("/sc3p5") && m.checkTypetag("f")) {
+      objPos.x = m.get(0).floatValue();
+    }
+  }
 };
 
 var p097 = new p5(s);
