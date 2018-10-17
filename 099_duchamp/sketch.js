@@ -28,7 +28,7 @@ EasingFunctions = {
   easeInOutQuint: function (t) { return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t }
 }
 
-var n = 4;
+var n = 8;
 var targets = [];
 var coeffs = [];
 
@@ -62,19 +62,35 @@ var S099 = function (p) {
     pg.rotate(phase * 2 * Math.PI);
 
     pg.noFill();
-    pg.stroke(255);
-    pg.strokeWeight(2);
+    pg.strokeWeight(3);
     let r = R;
 
+    pg.colorMode(p.HSB, 8, 8, 8);
     for(let i = 0; i < n; i++) {
+      pg.pushMatrix();
       let r0 = r - R / n / 2;
       let r1 = r0 - R / n / 2;
+
+      pg.stroke(i, 3, 7);
       pg.ellipse(0, 0, r0, r0);
       coeffs[i] = p.lerp(coeffs[i], targets[i], 0.1);
       let x = (r0 - r1) / 2 * coeffs[i];
+      pg.stroke(i, 7, 7);
+      pg.rotate(i * Math.PI / n);
       pg.ellipse(x, 0, r1, r1);
 
+      pg.pushStyle();
+      let dist = Math.abs(x);
+      if(dist > 1) {
+        pg.fill(i, 7, 7);
+        let rs = R / n / 4 * coeffs[i];
+        pg.ellipse(x + r1 / 2, 0, rs, rs);
+        pg.ellipse(x - r1 / 2, 0, rs, rs);
+      }
+      pg.popStyle();
+
       r = r1;
+      pg.popMatrix();
     }
 
     lastSeq = seq;
@@ -110,8 +126,8 @@ var s = function (p) {
   }
 
   p.oscEvent = function (m) {
-    if (m.checkAddrPattern("/sc3p5") && m.checkTypetag("ffff")) {
-      for(let i = 0; i < 4; i++) {
+    if (m.checkAddrPattern("/sc3p5") && m.checkTypetag("ffffffff")) {
+      for(let i = 0; i < 8; i++) {
         targets[i] = m.get(i).floatValue() > 0.5 ? 1 : 0;
       }
     }

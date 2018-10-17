@@ -36,11 +36,15 @@ a = Pseq([[100, 0.25], [200, 0.5], [131.2, 0.25], [99.2, 0.25]], inf).asStream;
 		var x1 = 2.rand;
 		var x2 = 2.rand;
 		var x3 = 2.rand;
-		n.sendMsg("/sc3p5", x0.asFloat, x1.asFloat, x2.asFloat, x3.asFloat);
+		var x4 = 2.rand;
+		var x5 = 2.rand;
+		var x6 = 2.rand;
+		var x7 = 2.rand;
+		n.sendMsg("/sc3p5", x0.asFloat, x1.asFloat, x2.asFloat, x3.asFloat, x4.asFloat, x5.asFloat, x6.asFloat, x7.asFloat);
 		Synth(\grain, [\freq, 30, \vol, 0.5]);
 		{
 		0.5.wait;
-		b = Pseq([100 * x0, 200 * x1, 131.2 * x2, 99.2 * x3], 1).asStream;
+		b = Pseq([100 * x0, 200 * x1, 131.2 * x2, 99.2 * x3, 120 * x4, 180 * x5, 151.2 * x6, 90.2 * x7], 1).asStream;
 		b.do {
 			|valb|
 			Synth(\blip, [\freq, valb, \dur, 2]);
