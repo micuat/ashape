@@ -31,17 +31,19 @@ EasingFunctions = {
 var n = 8;
 var targets = [];
 var coeffs = [];
+var bangTime = 0;
 
 for(let i = 0; i < n; i++) {
   targets[i] = 0;
   coeffs[i] = 0;
 }
 
-var S099 = function (p) {
+var S100 = function (p) {
   let startTime;
   let pg;
   let lastSeq;
   let cycle = 4.0;
+  let phase = 0;
   
   let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
 
@@ -59,8 +61,6 @@ var S099 = function (p) {
 
     let R = pg.width;
 
-    pg.rotate(phase * 2 * Math.PI);
-
     pg.noFill();
     pg.strokeWeight(3);
     let r = R;
@@ -68,28 +68,41 @@ var S099 = function (p) {
     pg.colorMode(p.HSB, 8, 8, 8);
     for(let i = 0; i < n; i++) {
       pg.pushMatrix();
-      let r0 = r - R / n / 2;
-      let r1 = r0 - R / n / 2;
 
-      pg.stroke(i, 3, 7);
-      pg.ellipse(0, 0, r0, r0);
       coeffs[i] = p.lerp(coeffs[i], targets[i], 0.1);
-      let x = (r0 - r1) / 2 * coeffs[i];
       pg.stroke(i, 7, 7);
-      pg.rotate(i * Math.PI / n);
-      pg.ellipse(x, 0, r1, r1);
 
-      pg.pushStyle();
-      let dist = Math.abs(x);
-      if(dist > 1) {
-        pg.fill(i, 7, 7);
-        let rs = R / n / 4 * coeffs[i];
-        pg.ellipse(x + r1 / 2, 0, rs, rs);
-        pg.ellipse(x - r1 / 2, 0, rs, rs);
+      let W = pg.width / 2;
+      let xTarget = W;
+      let y = p.map(i, -0.5, n-0.5, -1, 1) * pg.width / 2;
+      if(coeffs[i] > 0.5) {
+        xTarget = y;
       }
-      pg.popStyle();
+      let xStart, xEnd;
+      let dt = t - bangTime;
+      if(dt < 1) {
+        xStart = -W;
+        xEnd = p.map(EasingFunctions.easeOutQuart(dt), 0, 1, -W, xTarget);
+      }
+      else if(dt < 2) {
+        xStart = -W;
+        xEnd = xTarget;
+      }
+      else {
+        xStart = p.map(p.constrain(dt, 2, 3), 2, 3, -W, W);
+        xEnd = p.map(EasingFunctions.easeInQuart(dt - 2), 0, 1, xTarget, W * 1.5);
+      }
+      pg.line(xStart, y, xEnd, y);
 
-      r = r1;
+      pg.stroke(i, 0, 7);
+      let x = y;
+      let H = pg.height / 2;
+      let y1 = p.map(coeffs[i], 0, 1, H, y);
+      // pg.line(x, H, x, y1);
+      pg.fill(0, 0, 7);
+      pg.noStroke();
+      pg.ellipse(x, y1, W / 20, W / 20);
+
       pg.popMatrix();
     }
 
@@ -106,7 +119,7 @@ var S099 = function (p) {
 var s = function (p) {
   let startTime;
   
-  let s099 = new S099(p);
+  let s100 = new S100(p);
 
   p.setup = function () {
     name = p.folderName;
@@ -122,7 +135,7 @@ var s = function (p) {
   p.draw = function () {
     t = getTime();
 
-    s099.draw(t);
+    s100.draw(t);
   }
 
   p.oscEvent = function (m) {
@@ -130,6 +143,9 @@ var s = function (p) {
       for(let i = 0; i < 8; i++) {
         targets[i] = m.get(i).floatValue() > 0.5 ? 1 : 0;
       }
+    }
+    if (m.checkAddrPattern("/sc3p5/bang")) {
+      bangTime = getTime();
     }
   }
 };

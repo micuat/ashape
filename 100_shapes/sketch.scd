@@ -52,7 +52,9 @@ a = Pseq([[100, 0.25], [200, 0.5], [131.2, 0.25], [99.2, 0.25]], inf).asStream;
 		};
 		}.fork;
 
-		4.wait;
+		1.wait;
+		n.sendMsg("/sc3p5/bang");
+		3.wait;
     }
 }.fork;
 )
