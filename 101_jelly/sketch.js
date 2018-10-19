@@ -38,10 +38,13 @@ var S101 = function (p) {
   function Agent() {
     this.init = function () {
       this.size = pg.width / 10;
+      this.tInit = p.random(0, 1);
+      this.rate = p.random(0.01, 0.5);
+      this.sizes = [];
 
       this.angleX = p.random(Math.PI * 2);
       this.angleY = p.random(Math.PI * 2);
-      this.velAngleX = p.random(0.02, 0.05);
+      this.velAngleX = p.random(0.002, 0.01);
       
       this.vel = p5.Vector.random2D();
       this.pos = this.vel.copy();
@@ -53,7 +56,7 @@ var S101 = function (p) {
     this.draw = function () {
       this.pos.add(this.vel);
 
-      if(this.pos.mag() > pg.width / Math.sqrt(2)) {
+      if(this.pos.mag() > pg.width / Math.sqrt(2) + this.size) {
         this.init();
       }
 
@@ -72,16 +75,28 @@ var S101 = function (p) {
         // p.addFloat(m, vol);
         // p.oscP5.send(m, remoteLocation);
       }
+      let t = p.millis() * 0.001 - this.tInit;
+      let a = Math.sin(t * Math.PI * this.rate);
+      let size = this.size + a * this.size * 0.25;
+      if(p.frameCount % 2 == 0) {
+        this.sizes.push(size);
+        if(this.sizes.length > 200)
+          this.sizes.shift();
+      }
       pg.pushMatrix();
       pg.translate(this.pos.x, this.pos.y);
       this.angleX += this.velAngleX;
       pg.rotateX(this.angleX);
       // pg.rotateY(this.angleY);
-      pg.ellipse(0, 0, this.size, this.size);
+      pg.ellipse(0, 0, size, size);
       for(let i = 0; i < 16; i++) {
-        let x = this.size * Math.cos(i * Math.PI / 8) / 2;
-        let y = this.size * Math.sin(i * Math.PI / 8) / 2;
-        pg.line(x, y, 0, x, y, this.size);
+        pg.beginShape();
+        for(let j = 0; j < this.sizes.length; j++) {
+          let x = this.sizes[j] * Math.cos(i * Math.PI / 8) / 2;
+          let y = this.sizes[j] * Math.sin(i * Math.PI / 8) / 2;
+          pg.vertex(x, y, (this.sizes.length - j - 1) * 2);
+        }
+        pg.endShape();
       }
       pg.popMatrix();
     }
@@ -89,7 +104,7 @@ var S101 = function (p) {
   }
 
   let agents = [];
-  for(let i = 0; i < 10; i++) {
+  for(let i = 0; i < 5; i++) {
     agents.push(new Agent());
   }
 
