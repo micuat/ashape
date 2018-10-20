@@ -52,12 +52,12 @@ var S100 = function (p) {
     this.init = function (x, y) {
       this.targetPos = p.createVector(x, y);
       this.isMoving = true;
-      this.size = 15;
+      this.size = 20;
       this.vel = 20;
     }
     this.init(x, y);
     this.update = function () {
-      if(this.isMoving = true) {
+      if(this.isMoving == true) {
         if(this.targetPos.y < this.pos.y) {
           this.pos.y -= this.vel;
         }
@@ -88,16 +88,32 @@ var S100 = function (p) {
     this.init();
 
     this.update = function (banged) {
-      if(this.hit == false) {
-        for(let i in barriers) {
+      let hit = false;
+      for(let i in barriers) {
+        if(barriers[i].isMoving == false) {
           if(this.posRight.x >= barriers[i].pos.x
             && (Math.abs(this.posRight.y - barriers[i].pos.y) < barriers[i].size)) {
-            this.hit = true;
+            if(this.hit == false) {
+              // first time
+              this.hit = true;
+
+              let m = new Packages.oscP5.OscMessage("/s_new");
+              m.add("blip");
+              m.add(-1);
+              m.add(0);
+              m.add(0);
+              m.add("freq");
+              p.addFloat(m, 0 + (x + pg.width * 0.5) * 0.5);
+              m.add("dur");
+              p.addFloat(m, this.posRight.dist(this.posLeft) * 0.002);
+              p.oscP5.send(m, remoteLocation);      
+            }
+            hit = true;
           }
         }
       }
 
-      if(this.hit) {
+      if(hit) {
         if(banged || this.banged) {
           this.posLeft.add(this.vel);
           this.banged = true;
@@ -140,23 +156,23 @@ var S100 = function (p) {
       return index * pg.width * -0.5;
     },
     function(index) {
-      return 0;
+      return ((((index + 1) * 3) % 2) - 1) * pg.width * 0.5;
     },
     function(index) {
-      return Math.sin(index * 2 * Math.PI) * pg.width * 0.5;
+      return 0;
     }
   ]
   let indexFunc = funcs[0];
+  this.metro = function(mode) {
+    indexFunc = funcs[mode];
+
+    for(let i = 0; i < barriers.length; i++) {
+      let index = p.map(i + 0.5, 0, barriers.length, -1, 1);
+      barriers[i].init(barriers[i].pos.x, indexFunc(index));
+    }
+  }
   function drawPg(pg, t) {
     let seq = Math.floor(t / cycle);
-    if(seq != lastSeq) {
-      indexFunc = p.random(funcs);
-
-      for(let i = 0; i < barriers.length; i++) {
-        let index = p.map(i + 0.5, 0, barriers.length, -1, 1);
-        barriers[i].init(barriers[i].pos.x, indexFunc(index));
-      }
-    }
 
     pg.beginDraw();
     pg.blendMode(p.BLEND);
@@ -225,6 +241,7 @@ var s = function (p) {
       }
     }
     if (m.checkAddrPattern("/sc3p5/bang")) {
+      s100.metro(m.get(0).intValue());
       bangTime = getTime();
     }
   }
