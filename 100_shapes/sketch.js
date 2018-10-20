@@ -39,75 +39,155 @@ for(let i = 0; i < n; i++) {
 }
 
 var S100 = function (p) {
-  let startTime;
   let pg;
-  let lastSeq;
-  let cycle = 4.0;
-  let phase = 0;
+  let lastSeq = -1;
+  let cycle = 2.0;
   
   let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
 
   pg = p.createGraphics(800, 800, p.P3D);
 
+  function Barrier(x, y) {
+    this.pos = p.createVector(x, y);
+    this.init = function (x, y) {
+      this.targetPos = p.createVector(x, y);
+      this.isMoving = true;
+      this.size = 15;
+      this.vel = 20;
+    }
+    this.init(x, y);
+    this.update = function () {
+      if(this.isMoving = true) {
+        if(this.targetPos.y < this.pos.y) {
+          this.pos.y -= this.vel;
+        }
+        else {
+          this.pos.y += this.vel;
+        }
+        if(Math.abs(this.pos.y - this.targetPos.y) <= this.vel) {
+          this.pos.y = this.targetPos.y;
+          this.isMoving = false;
+        }
+      }
+    }
+    this.draw = function (pg) {
+      pg.line(this.pos.x, this.pos.y - this.size, this.pos.x, this.pos.y + this.size);
+    }
+  }
+  function Laser(x, y) {
+    this.init = function () {
+      this.banged = false;
+      this.startPos = p.createVector(pg.width * -0.5, y);
+      this.posRight = this.startPos.copy();
+      this.posLeft = this.startPos.copy();
+      this.endPos = p.createVector(pg.width * 0.5, y);
+      this.vel = p.createVector(5, 0);
+      this.minLength = 50;
+      this.hit = false;
+    }
+    this.init();
+
+    this.update = function (banged) {
+      if(this.hit == false) {
+        for(let i in barriers) {
+          if(this.posRight.x >= barriers[i].pos.x
+            && (Math.abs(this.posRight.y - barriers[i].pos.y) < barriers[i].size)) {
+            this.hit = true;
+          }
+        }
+      }
+
+      if(this.hit) {
+        if(banged || this.banged) {
+          this.posLeft.add(this.vel);
+          this.banged = true;
+        }
+      }
+      else {
+        this.posRight.add(this.vel);
+        let length = this.posRight.dist(this.posLeft);
+        if(length > this.minLength && (banged || this.banged)) {
+          this.posLeft.add(this.vel);
+          this.banged = true;
+        }
+      }
+      if(this.posRight.x < this.posLeft.x || this.posLeft.x > this.endPos.x) {
+        this.init();
+      }
+    }
+    this.draw = function (pg) {
+      pg.line(this.posLeft.x, this.posLeft.y, this.posRight.x, this.posRight.y);
+    }
+  }
+  let barriers = [];
+  for(let i = 0; i < 16; i++) {
+    let x = pg.width * p.map(i + 0.5, 0, 16, -0.5, 0.5);
+    let y = x;
+    barriers.push(new Barrier(x, y));
+  }
+  let lasers = [];
+  for(let i = 0; i < 16; i++) {
+    let x = pg.width * p.map(i + 0.5, 0, 16, -0.5, 0.5);
+    let y = x;
+    lasers.push(new Laser(x, y));
+  }
+
+  let funcs = [
+    function(index) {
+      return index * pg.width * 0.5;
+    },
+    function(index) {
+      return index * pg.width * -0.5;
+    },
+    function(index) {
+      return 0;
+    },
+    function(index) {
+      return Math.sin(index * 2 * Math.PI) * pg.width * 0.5;
+    }
+  ]
+  let indexFunc = funcs[0];
   function drawPg(pg, t) {
     let seq = Math.floor(t / cycle);
+    if(seq != lastSeq) {
+      indexFunc = p.random(funcs);
+
+      for(let i = 0; i < barriers.length; i++) {
+        let index = p.map(i + 0.5, 0, barriers.length, -1, 1);
+        barriers[i].init(barriers[i].pos.x, indexFunc(index));
+      }
+    }
+
     pg.beginDraw();
     pg.blendMode(p.BLEND);
     pg.background(0);
 
+    let banged = false;
+    if(t - bangTime > 1) {
+      banged = true;
+    }
+    for(let i in barriers) {
+      barriers[i].update();
+    }
+    for(let i in lasers) {
+      lasers[i].update(banged);
+    }
+
     pg.translate(pg.width * 0.5, pg.height * 0.5);
-
-    let phase = t / cycle % 1.0;
-
-    let R = pg.width;
 
     pg.noFill();
     pg.strokeWeight(3);
-    let r = R;
 
-    pg.colorMode(p.HSB, 8, 8, 8);
-    for(let i = 0; i < n; i++) {
-      pg.pushMatrix();
-
-      coeffs[i] = p.lerp(coeffs[i], targets[i], 0.1);
-      pg.stroke(i, 7, 7);
-
-      let W = pg.width / 2;
-      let xTarget = W;
-      let y = p.map(i, -0.5, n-0.5, -1, 1) * pg.width / 2;
-      if(coeffs[i] > 0.5) {
-        xTarget = y;
-      }
-      let xStart, xEnd;
-      let dt = t - bangTime;
-      if(dt < 1) {
-        xStart = -W;
-        xEnd = p.map(EasingFunctions.easeOutQuart(dt), 0, 1, -W, xTarget);
-      }
-      else if(dt < 2) {
-        xStart = -W;
-        xEnd = xTarget;
-      }
-      else {
-        xStart = p.map(p.constrain(dt, 2, 3), 2, 3, -W, W);
-        xEnd = p.map(EasingFunctions.easeInQuart(dt - 2), 0, 1, xTarget, W * 1.5);
-      }
-      pg.line(xStart, y, xEnd, y);
-
-      pg.stroke(i, 0, 7);
-      let x = y;
-      let H = pg.height / 2;
-      let y1 = p.map(coeffs[i], 0, 1, H, y);
-      // pg.line(x, H, x, y1);
-      pg.fill(0, 0, 7);
-      pg.noStroke();
-      pg.ellipse(x, y1, W / 20, W / 20);
-
-      pg.popMatrix();
+    pg.stroke(255);
+    for(let i in barriers) {
+      barriers[i].draw(pg);
+    }
+    for(let i in lasers) {
+      lasers[i].draw(pg);
     }
 
-    lastSeq = seq;
     pg.endDraw();
+    lastSeq = seq;
   }
 
   this.draw = function (t) {
