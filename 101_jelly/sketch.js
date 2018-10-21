@@ -41,6 +41,7 @@ var S101 = function (p) {
       this.tInit = p.random(0, 1);
       this.rate = p.random(0.01, 0.5);
       this.sizes = [];
+      this.col = p.random(-1, 1);
 
       this.angleX = p.random(Math.PI * 2);
       this.angleY = p.random(Math.PI * 2);
@@ -84,6 +85,12 @@ var S101 = function (p) {
           this.sizes.shift();
       }
       pg.pushMatrix();
+      if(this.col > 0) {
+        pg.stroke(this.col * 20, 128, 255);
+      }
+      else {
+        pg.stroke(this.col * 20 + 255, 128, 255);
+      }
       pg.translate(this.pos.x, this.pos.y);
       this.angleX += this.velAngleX;
       pg.rotateX(this.angleX);
@@ -116,6 +123,7 @@ var S101 = function (p) {
     pg.translate(pg.width * 0.5, pg.height * 0.5);
 
     pg.stroke(255);
+    pg.colorMode(p.HSB, 255, 255, 255);
     pg.noFill();
     for(let i in agents) {
       agents[i].draw();
