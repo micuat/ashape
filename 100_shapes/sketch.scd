@@ -20,11 +20,11 @@ SynthDef("\grain", { arg freq=440, pan=0, vol=1;
 		env = Env([0, amp, amp, 0], [attTime, dur-(attTime+relTime), relTime], 1);
 		envgen = EnvGen.kr(env, doneAction: Done.freeSelf);
 
-	Out.ar(0, Pan2.ar(LPF.ar(Ringz.ar(WhiteNoise.ar(Decay.ar(Impulse.ar(0.1), 0.5)) * 0.1 * vol, freq, 0.1), 500), pan));
+	Out.ar(0, Pan2.ar(LPF.ar(Decay.ar(Impulse.ar(0.1), 0.15), freq), pan));
 }).send(s);
 )
 
-Synth(\blip, [\freq, 100, \dur, 0.5]);
+Synth(\blip, [\freq, 100, \dur, 0.1]);
 Synth(\grain, [\freq, 1000]);
 
 (
@@ -37,7 +37,7 @@ a = Pseq([[100, 0.25], [200, 0.5], [131.2, 0.25], [99.2, 0.25]], inf).asStream;
 		if(mode == lastMode,
 			{},
 			{
-				Synth(\grain, [\freq, 1000, \vol, 1]);
+				Synth(\blip, [\freq, 200, \dur, 0.5]);
 				n.sendMsg("/sc3p5/bang", mode);
 		});
 		lastMode = mode;

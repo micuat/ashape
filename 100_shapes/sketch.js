@@ -42,6 +42,10 @@ var S100 = function (p) {
   let pg;
   let lastSeq = -1;
   let cycle = 2.0;
+  this.rX = 0;
+  this.rY = 0;
+  this.rXt = 0;
+  this.rYt = 0;
   
   let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
 
@@ -73,7 +77,7 @@ var S100 = function (p) {
     this.draw = function (pg) {
       pg.pushMatrix();
       pg.translate(this.pos.x, this.pos.y);
-      pg.box(10, this.size * 2, this.size * 2);
+      pg.box(10, this.size * 2, this.size * 100);
       pg.popMatrix();
     }
   }
@@ -101,14 +105,12 @@ var S100 = function (p) {
               this.hit = true;
 
               let m = new Packages.oscP5.OscMessage("/s_new");
-              m.add("blip");
+              m.add("grain");
               m.add(-1);
               m.add(0);
               m.add(0);
               m.add("freq");
-              p.addFloat(m, 0 + (x + pg.width * 0.5) * 0.5);
-              m.add("dur");
-              p.addFloat(m, this.posRight.dist(this.posLeft) * 0.002);
+              p.addFloat(m, 10000);
               p.oscP5.send(m, remoteLocation);      
             }
             hit = true;
@@ -138,7 +140,7 @@ var S100 = function (p) {
       pg.pushMatrix();
       let x = (this.posLeft.x + this.posRight.x) * 0.5;
       let y = (this.posLeft.y + this.posRight.y) * 0.5;
-      let w = (this.posRight.x - this.posLeft.x) * 0.5;
+      let w = (this.posRight.x - this.posLeft.x);
       pg.translate(x, y);
       pg.box(w, 10, 10);
       pg.popMatrix();
@@ -174,13 +176,15 @@ var S100 = function (p) {
   let indexFunc = funcs[0];
   this.metro = function(mode) {
     indexFunc = funcs[mode];
+    this.rX = p.random(-Math.PI / 2, Math.PI / 2);
+    this.rY = p.random(-Math.PI / 2, Math.PI / 2);
 
     for(let i = 0; i < barriers.length; i++) {
       let index = p.map(i + 0.5, 0, barriers.length, -1, 1);
       barriers[i].init(barriers[i].pos.x, indexFunc(index));
     }
   }
-  function drawPg(pg, t) {
+  this.drawPg = function(pg, t) {
     let seq = Math.floor(t / cycle);
 
     pg.beginDraw();
@@ -199,10 +203,16 @@ var S100 = function (p) {
     }
 
     pg.translate(pg.width * 0.5, pg.height * 0.5);
-    pg.rotateY(p.map(p.mouseX, 0, p.width, -Math.PI, Math.PI));
-    pg.rotateX(p.map(p.mouseY, 0, p.height, -Math.PI, Math.PI));
 
-    pg.lights();
+    pg.pointLight(255, 255, 255, 0, 0, 500);
+    this.rXt = p.lerp(this.rXt, this.rX, 0.1);
+    this.rYt = p.lerp(this.rYt, this.rY, 0.1);
+    pg.rotateY(this.rYt);
+    pg.rotateX(this.rXt);
+    // pg.rotateY(p.map(p.mouseX, 0, p.width, -Math.PI, Math.PI));
+    // pg.rotateX(p.map(p.mouseY, 0, p.height, -Math.PI, Math.PI));
+
+    // pg.lights();
     pg.noStroke();
     pg.fill(200);
     for(let i in barriers) {
@@ -217,7 +227,7 @@ var S100 = function (p) {
   }
 
   this.draw = function (t) {
-    drawPg(pg, t);
+    this.drawPg(pg, t);
     p.image(pg, 0, 0);
   }
 };
