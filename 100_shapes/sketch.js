@@ -71,7 +71,10 @@ var S100 = function (p) {
       }
     }
     this.draw = function (pg) {
-      pg.line(this.pos.x, this.pos.y - this.size, this.pos.x, this.pos.y + this.size);
+      pg.pushMatrix();
+      pg.translate(this.pos.x, this.pos.y);
+      pg.box(10, this.size * 2, this.size * 2);
+      pg.popMatrix();
     }
   }
   function Laser(x, y) {
@@ -132,7 +135,13 @@ var S100 = function (p) {
       }
     }
     this.draw = function (pg) {
-      pg.line(this.posLeft.x, this.posLeft.y, this.posRight.x, this.posRight.y);
+      pg.pushMatrix();
+      let x = (this.posLeft.x + this.posRight.x) * 0.5;
+      let y = (this.posLeft.y + this.posRight.y) * 0.5;
+      let w = (this.posRight.x - this.posLeft.x) * 0.5;
+      pg.translate(x, y);
+      pg.box(w, 10, 10);
+      pg.popMatrix();
     }
   }
   let barriers = [];
@@ -190,11 +199,12 @@ var S100 = function (p) {
     }
 
     pg.translate(pg.width * 0.5, pg.height * 0.5);
+    pg.rotateY(p.map(p.mouseX, 0, p.width, -Math.PI, Math.PI));
+    pg.rotateX(p.map(p.mouseY, 0, p.height, -Math.PI, Math.PI));
 
-    pg.noFill();
-    pg.strokeWeight(3);
-
-    pg.stroke(255);
+    pg.lights();
+    pg.noStroke();
+    pg.fill(200);
     for(let i in barriers) {
       barriers[i].draw(pg);
     }
