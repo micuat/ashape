@@ -28,7 +28,7 @@ EasingFunctions = {
   easeInOutQuint: function (t) { return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t }
 }
 
-var S102 = function (p) {
+var S103 = function (p) {
   let pg;
   let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57110);
 
@@ -169,7 +169,7 @@ var S102 = function (p) {
 var s = function (p) {
   let startTime;
   
-  let s102 = new S102(p);
+  let s103 = new S103(p);
 
   p.setup = function () {
     name = p.folderName;
@@ -185,7 +185,7 @@ var s = function (p) {
   p.draw = function () {
     t = getTime();
 
-    s102.draw(t);
+    s103.draw(t);
   }
 
   p.oscEvent = function (m) {
@@ -193,10 +193,10 @@ var s = function (p) {
       let x = m.get(0).floatValue();
       let y = m.get(1).floatValue();
       let z = m.get(2).floatValue();
-      s102.lfo(x, y, z);
+      s103.lfo(x, y, z);
     }
     else if (m.checkAddrPattern("/sc3p5/metro")) {
-      s102.metro();
+      s103.metro();
     }
   }
 };
