@@ -49,8 +49,14 @@ var S105 = function (p) {
     let n = 10;
     pg.fill(200);
     pg.stroke(100);
-    pg.translate(this.bx, 0, 0);
-    pg.box(100);
+
+    for(let i = 0; i < 16; i++) {
+      pg.pushMatrix();
+      pg.rotateZ((300-this.bz) * 0.001 * i);
+      pg.translate(this.bx, 0, 0);
+      pg.box(100);
+      pg.popMatrix();
+    }
     pg.popMatrix();
 
     pg.endDraw();
