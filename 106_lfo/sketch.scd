@@ -8,7 +8,7 @@ SynthDef("bg", { arg freq = 440, mul = 0.22, dur = 1.0;
 	var s;
 	o = Decay.ar(Impulse.ar(0.25), 10.0);
 	i = Decay.ar(Impulse.ar(0.5), 4.0);
-	SendTrig.kr(Impulse.kr(100), 0, o * 400 - 200);
+	SendTrig.kr(Impulse.kr(100), 0, o * 1000 - 500);
 	SendTrig.kr(Impulse.kr(100), 1, i * 1000 - 500);
 	s = Ringz.ar(SinOsc.ar(o * 50 + 50, 0, i * mul), 100, dur);
     Out.ar(

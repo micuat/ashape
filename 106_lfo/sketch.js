@@ -30,6 +30,8 @@ EasingFunctions = {
 
 var p;
 
+var ribbonNoise = 0.0;
+
 function Segment() {
   p = arguments[0];
   this.pg = arguments[1];
@@ -39,7 +41,7 @@ function Segment() {
   this.b = new p5.Vector();
   this.sw = 0;
   this.target = p.createVector();
-  this.width = 10;
+  this.width = 800.0/32;
 
   if (arguments.length == 6) {
     let x = arguments[2];
@@ -106,9 +108,15 @@ Segment.prototype.show = function () {
   let dir0 = this.a.copy();
   dir0.sub(this.target);
   dir0.normalize();
+  let d = p5.Vector.random3D();
+  d.mult(ribbonNoise);
+  dir0.add(d);
   let dir1 = this.b.copy();
   dir1.sub(this.a);
   dir1.normalize();
+  d = p5.Vector.random3D();
+  d.mult(ribbonNoise);
+  dir0.add(d);
   let cross = dir0.cross(dir1);
   // let cross = dir1;
   // cross.sub(dir0);
@@ -127,7 +135,7 @@ Segment.prototype.show = function () {
 function Tentacle(p, pg, x, y, ex, ey, index) {
   this.p = p;
   this.pg = pg;
-  this.segments = new Array(80);
+  this.segments = new Array(40);
   this.base;
   this.len = 10;
   this.defaultTarget = new p5.Vector(ex, ey);
@@ -178,9 +186,9 @@ var S106 = function (p) {
 
   pg = p.createGraphics(800, 800, p.P3D);
 
-  for (let i = 0; i < 8; i++) {
-    let x = p.map(i, 0, 7, -400, 400);
-    let y = -400;
+  for (let i = 0; i < 32; i++) {
+    let x = p.map(i, 0, 31, -400, 400);
+    let y = 0;
     tentacles.push(new Tentacle(p, pg, x, y, x, p.height, i));
   }
   
@@ -190,7 +198,9 @@ var S106 = function (p) {
 
   this.drawPg = function(pg, t) {
     pg.beginDraw();
-    pg.background(this.back);
+    pg.background(0);
+    // pg.background(this.back);
+    ribbonNoise = this.back * 0.0001;
 
     pg.translate(pg.width * 0.5, pg.height * 0.5);
 
@@ -200,7 +210,13 @@ var S106 = function (p) {
     pg.fill(255);
     pg.pointLight(255, 255, 255, 0, 0, 100);
     for(let i = 0; i < tentacles.length; i++) {
-      tentacles[i].update(p.createVector(this.bx, this.by));
+      let x = this.bx;
+      let y = this.by;
+      if(i < tentacles.length / 2) {
+        x *= -1;
+        y *= -1;
+      }
+      tentacles[i].update(p.createVector(x, y));
       tentacles[i].show();
     }
 
