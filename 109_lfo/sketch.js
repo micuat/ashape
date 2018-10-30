@@ -218,7 +218,7 @@ var S109 = function (p) {
     let x = p.map(i, 0, 31, -400, 400);
     let y = 0;
     let t = new Tentacle(p, pg, x, y, x, p.height, i);
-    t.init(p.createVector(x, y));
+    // t.init(p.createVector(x, y));
     tentacles.push(t);
   }
   
@@ -237,10 +237,10 @@ var S109 = function (p) {
   }
 
   this.drawPg = function(pg, t) {
-    if(p.frameCount % 30 == 0){// && p.key == '0') {
-      this.spawn(p.createVector(0, 0));
-      this.spawn(p.createVector(0, 0));
-    }
+    // if(p.frameCount % 30 == 0){// && p.key == '0') {
+    //   this.spawn(p.createVector(0, 0));
+    //   this.spawn(p.createVector(0, 0));
+    // }
     pg.beginDraw();
     pg.background(0);
     // pg.background(this.back);
@@ -296,13 +296,15 @@ var s = function (p) {
 
   p.oscEvent = function (m) {
     let path = m.addrPattern().split("/");
-    if (path.length >= 4 && path[1] == "sc3p5" && path[2] == "control") {
+    if (path.length >= 3 && path[1] == "sc3p5" && path[2] == "spawn") {
+      s109.spawn(p.createVector(m.get(0).floatValue(), 0));
+    }
+    else if (path.length >= 4 && path[1] == "sc3p5" && path[2] == "control") {
       s109[path[3]] = m.get(0).floatValue();
     }
   }
 
   p.mousePressed = function () {
-    s109.spawn(p.createVector(p.mouseX - 400, p.mouseY - 400));
   }
 };
 
