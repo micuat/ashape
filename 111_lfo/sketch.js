@@ -30,6 +30,22 @@ EasingFunctions = {
 
 var p;
 
+function Particle (p, x, y) {
+  this.x = x;
+  this.y = y;
+  this.p = p;
+  this.startTime = this.p.millis() * 0.001;
+  this.lifeTime = 3;
+}
+
+Particle.prototype.draw = function (pg) {
+  pg.point(this.x, this.y);
+}
+
+Particle.prototype.isAlive = function () {
+  return this.p.millis() * 0.001 - this.startTime < this.lifeTime;
+}
+
 var S111 = function (p) {
   let pg;
 
@@ -47,18 +63,20 @@ var S111 = function (p) {
       pg.rotateZ(rad);
     },
   ]
-  for(let j = 0; j < 4; j++) {
+  for(let j = 0; j < 8; j++) {
     let propj = [];
     for(let i = 0; i < 4; i++) {
       let prop = {
         rot: p.random(rotFuncs),
-        freq: Math.floor(p.random(1, 5))
+        freq: Math.floor(p.random(1, 5)),
+        tBreak: Math.floor(p.random(0, 4)),
+        particles: []
       }
+      if(i == 0) prop.rot = rotFuncs[2];
       propj.push(prop);
     }
     props.push(propj);
   }
-
 
   this.drawPg = function(pg, t) {
     pg.beginDraw();
@@ -72,29 +90,39 @@ var S111 = function (p) {
     pg.noStroke();
     pg.fill(255);
     // pg.noFill();
-    pg.pointLight(255, 255, 255, 0, 0, 300);
+    pg.pointLight(255, 255, 255, 0, -200, 300);
 
     pg.rotateX(Math.PI * 0.25);
 
-    function drawBox(l) {
+    function drawBox(l, yratio, zratio) {
+      if(yratio == undefined) yratio = 1;
+      if(zratio == undefined) zratio = 1;
       pg.pushMatrix();
-      pg.translate(0, 0, l / 4);
-      pg.box(l, l, l / 4);
+      pg.translate(0, 0, l / 4 * zratio);
+      pg.box(l, l * yratio, l / 4 * zratio);
       pg.popMatrix();
       pg.pushMatrix();
-      pg.translate(0, 0, -l / 4);
-      pg.box(l, l, l / 4);
+      pg.translate(0, 0, -l / 4 * zratio);
+      pg.box(l, l * yratio, l / 4 * zratio);
       pg.popMatrix();
     }
-    let l = 200;
+    let l = 100;
     pg.pushMatrix();
-    drawBox(l);
-    for(let j in props) {
+    drawBox(2000, 0.04, 0.08);
+    for(let jj in props) {
+      let j = (jj) % props.length;
       pg.pushMatrix();
-      pg.rotateY(Math.PI / 2 * j);
+      let tt = (t / 2) % 8;
+      let tn = Math.floor(tt);
+      let tf = tt - tn;
+      tf = EasingFunctions.easeInOutCubic(tf);
+      pg.translate((j * 200 + (tn + tf) * 200) % 1600 - 800, 0);
+      pg.rotateY(Math.PI / 2 * 3);
       for(let i in props[j]) {
-        let tb = (t / props[j][i].freq) % 2;
-        if(tb > 1) tb = 2 - tb;
+        let tb = (t / props[j][i].freq / 2) % (props[j][i].tBreak + 1);
+        if(tb > 1) tb = 0;
+        if(tb > 0.5) tb = 1 - tb;
+        tb *= 2;
         props[j][i].rot(pg, EasingFunctions.easeInOutCubic(tb) * Math.PI * 0.5);
         pg.translate(l, 0);
         pg.scale(0.5);
@@ -103,6 +131,20 @@ var S111 = function (p) {
       pg.popMatrix();
     }
     pg.popMatrix();
+
+    // pg.pushStyle();
+    // pg.stroke(255);
+    // pg.strokeWeight(4);
+    // if(p.random(1) > 0.5) {
+    //   particles.push(new Particle(p, p.random(-200, 200), 0));
+    // }
+    // for(let i = particles.length - 1; i >= 0; i--) {
+    //   particles[i].draw(pg);
+    //   if(particles[i].isAlive() == false) {
+    //     particles.splice(i, 1);
+    //   }
+    // }
+    // pg.popStyle();
 
     pg.popMatrix();
     pg.endDraw();
