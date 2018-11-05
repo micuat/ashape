@@ -40,10 +40,16 @@ var S112 = function (p) {
     this[l] = this.lorg * 2;
   }
 
-  this.bass = function () {
+  this.sig = function () {
     this.rotXTarget = p.random(-Math.PI, Math.PI);
     this.rotYTarget = p.random(-Math.PI, Math.PI);
   }
+
+  this.hhat = function () {
+    this.shake = 1;
+  }
+
+  this.shake = 0;
   this.rotX = 0.0;
   this.rotY = 0.0;
   this.rotXTarget = 0.0;
@@ -68,6 +74,8 @@ var S112 = function (p) {
 
     pg.noFill();
     pg.stroke(255);
+    pg.translate(this.shake * p.random(-1, 1) * 30, 0);
+    this.shake = p.lerp(this.shake, 0, 0.3);
     pg.box(this.lx, this.lorg, this.lorg);
     pg.box(this.lorg, this.ly, this.lorg);
     pg.box(this.lorg, this.lorg, this.lz);
@@ -112,8 +120,11 @@ var s = function (p) {
     if (path.length >= 3 && path[1] == "sc3p5" && path[2] == "click") {
       s112.click();
     }
-    else if (path.length >= 3 && path[1] == "sc3p5" && path[2] == "bass") {
-      s112.bass();
+    else if (path.length >= 3 && path[1] == "sc3p5" && path[2] == "sig") {
+      s112.sig();
+    }
+    else if (path.length >= 3 && path[1] == "sc3p5" && path[2] == "hhat") {
+      s112.hhat();
     }
   }
 
