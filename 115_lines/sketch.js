@@ -113,45 +113,27 @@ var S115 = function (p) {
       pg.scale(s, s);
       pg.strokeWeight(5.0 / s);
 
-      if (y0 > 200) {
-        pg.line(-0.5, 0, -0.125, 0);
-        pg.line(0.5, 0, 0.125, 0);
-        let l = 0.25 / Math.sqrt(2);
-        pg.rotate(Math.PI / 4);
-        pg.rect(-l/2, -l/2, l, l);
-      }
-      else if (y0 > -20) {
-        pg.noFill();
-        pg.curveTightness(0.0);
-        for(let i = 0; i < 3; i++) {
-          let h = 0.05 * (i + 1);
+      let amount = p.map(Math.abs((y0 + y1) * 0.5), 0, 400, 2, 0);
+      pg.noFill();
+      pg.curveTightness(0.0);
+      for(let i = 0; i < 3; i++) {
+        let h = 0.05 * (i + 1);
+        for(let n = 0; n < 2; n++) {
           pg.beginShape();
-          pg.curveVertex(-0.5, 0);
-          pg.curveVertex(-0.5, 0);
-          pg.curveVertex(-0.25, h * 0.1);
-          pg.curveVertex(0, h);
-          pg.curveVertex(0.25, h * 0.1);
-          pg.curveVertex(0.5, 0);
-          pg.curveVertex(0.5, 0);
-          pg.endShape();
-  
-          pg.beginShape();
-          pg.curveVertex(-0.5, 0);
-          pg.curveVertex(-0.5, 0);
-          pg.curveVertex(-0.25, -h * 0.1);
-          pg.curveVertex(0, -h);
-          pg.curveVertex(0.25, -h * 0.1);
-          pg.curveVertex(0.5, 0);
-          pg.curveVertex(0.5, 0);
-          pg.endShape();
+          for(let x = -0.5; x <= 0.5; x += 0.02) {
+            let y = Math.cos(x * Math.PI * amount + t * 4) * Math.cos(x * Math.PI) * h;
+            pg.vertex(x, y);
           }
-      }
-      else {
-        pg.line(-0.5, 0, -0.125, 0);
-        pg.line(0.5, 0, 0.125, 0);
-        let l = 0.25 / Math.sqrt(2);
-        pg.rotate(Math.PI / 4);
-        pg.ellipse(0, 0, 0.25, 0.25);
+          // pg.curveVertex(-0.5, 0);
+          // pg.curveVertex(-0.5, 0);
+          // pg.curveVertex(-vx, h * 0.1);
+          // pg.curveVertex(0, h);
+          // pg.curveVertex(vx, h * 0.1);
+          // pg.curveVertex(0.5, 0);
+          // pg.curveVertex(0.5, 0);
+          pg.endShape();
+          pg.scale(1, -1);
+        }
       }
       pg.popMatrix();
     }
@@ -168,8 +150,8 @@ var S115 = function (p) {
     }
     for(let i = 0; i < points.length; i++) {
       points[i].p.add(points[i].v);
-      points[i].p.x = (points[i].p.x + 1000 * 1.5) % 1000 - 1000 * 0.5;
-      points[i].p.y = (points[i].p.y + 1000 * 1.5) % 1000 - 1000 * 0.5;
+      points[i].p.x = (points[i].p.x + 1200 * 1.5) % 1200 - 1200 * 0.5;
+      points[i].p.y = (points[i].p.y + 1200 * 1.5) % 1200 - 1200 * 0.5;
       // points[i].p.x = (points[i].p.x + pg.width * 1.5) % pg.width - pg.width * 0.5;
       // points[i].p.y = (points[i].p.y + pg.width * 1.5) % pg.width - pg.width * 0.5;
     }
