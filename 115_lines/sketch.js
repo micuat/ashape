@@ -79,6 +79,14 @@ var S115 = function (p) {
     pg.endShape();
   }
 
+  let colors = [
+    [170, 143, 102],
+    [237, 155, 64],
+    [255, 238, 219],
+    [97, 201, 168],
+    [186, 59, 70]
+  ];
+
   let points = [];
   for(let i = 0; i < 20; i++) {
     let po = p.createVector(p.random(-400, 400), p.random(-400, 400));
@@ -100,9 +108,8 @@ var S115 = function (p) {
     pg.translate(pg.width * 0.5, pg.height * 0.5);
     pg.pushMatrix();
 
-    pg.stroke(255);
     pg.strokeWeight(1);
-    function drawLine (x0, y0, x1, y1) {
+    function drawLine (x0, y0, x1, y1, alpha) {
       pg.pushMatrix();
       let xm = p.lerp(x0, x1, 0.5);
       let ym = p.lerp(y0, y1, 0.5);
@@ -112,25 +119,24 @@ var S115 = function (p) {
       let s = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
       pg.scale(s, s);
       pg.strokeWeight(5.0 / s);
+      pg.noStroke();
 
       let amount = p.map(Math.abs((y0 + y1) * 0.5), 0, 400, 2, 0);
-      pg.noFill();
-      pg.curveTightness(0.0);
       for(let i = 0; i < 3; i++) {
         let h = 0.05 * (i + 1);
         for(let n = 0; n < 2; n++) {
           pg.beginShape();
           for(let x = -0.5; x <= 0.5; x += 0.02) {
-            let y = Math.cos(x * Math.PI * amount + t * 4) * Math.cos(x * Math.PI) * h;
+            let sig0 = Math.cos(x * Math.PI * amount + t * 4);
+            let sig1 = p.random(1);
+            let pt = EasingFunctions.easeInOutCubic(Math.sin(t + x0 * 0.01) * 0.5 + 0.5);
+            let sig = p.lerp(sig0, sig1, pt);
+            let env = Math.cos(x * Math.PI);
+            let y = sig * env * h;
+            let c = Math.floor(p.map(x, -0.5, 0.5, 0, colors.length) + t * 4) % colors.length;
+            pg.fill(colors[c][0], colors[c][1], colors[c][2], alpha * 255);
             pg.vertex(x, y);
           }
-          // pg.curveVertex(-0.5, 0);
-          // pg.curveVertex(-0.5, 0);
-          // pg.curveVertex(-vx, h * 0.1);
-          // pg.curveVertex(0, h);
-          // pg.curveVertex(vx, h * 0.1);
-          // pg.curveVertex(0.5, 0);
-          // pg.curveVertex(0.5, 0);
           pg.endShape();
           pg.scale(1, -1);
         }
@@ -140,11 +146,10 @@ var S115 = function (p) {
     for(let i = 0; i < points.length; i++) {
       pg.point(points[i].p.x, points[i].p.y);
       for(let j = i; j < points.length; j++) {
-        let alpha = 1 - points[i].p.dist(points[j].p) / 300.0;
+        let alpha = 1 - points[i].p.dist(points[j].p) / 400.0;
         if(alpha > 0) {
           alpha = Math.min(alpha * 2.0, 1.0);
-          pg.stroke(255, alpha * 255);
-          drawLine(points[i].p.x, points[i].p.y, points[j].p.x, points[j].p.y);
+          drawLine(points[i].p.x, points[i].p.y, points[j].p.x, points[j].p.y, alpha);
         }
       }
     }
