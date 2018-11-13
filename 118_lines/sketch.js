@@ -31,14 +31,15 @@ EasingFunctions = {
 var p;
 
 var S118 = function (p) {
-  let pg, pgTex;
+  let pg, pgTex0, pgTex1;
 
   pg = p.createGraphics(800, 800, p.P3D);
-  pgTex = p.createGraphics(800, 800, p.P3D);
+  pgTex0 = p.createGraphics(800, 800, p.P3D);
+  pgTex1 = p.createGraphics(800, 800, p.P3D);
 
   let colors = [
     [0xf5, 0x5d, 0x3e],
-    [0x87, 0x8E, 0x88],
+    [0xff, 0xff, 0xff],
     [0xF7, 0xCB, 0x15],
     [0xff, 0xff, 0xff],
     [0x76, 0xBE, 0xD0],
@@ -60,18 +61,15 @@ var S118 = function (p) {
       heights[i][j] = p.random(300);
     }
   }
-
-  this.drawPg = function(pg, t) {
-    if(p.frameCount % 60 == 0) {
-      for(let i = 0; i < points.length; i++) {
-        points[i].v = p5.Vector.random2D();
-        points[i].v.mult(p.random(0.5, 3));
-      }
-    }
-
+  this.drawPgTex = function(pgTex, t, add) {
     pgTex.beginDraw();
-    // pgTex.background(0, 0);
-    pgTex.background(255, 50);
+    if(add) {
+    }
+    else {
+      pgTex.directionalLight(255, 255, 255, 0, 1, -1);
+      pgTex.background(0, 0);
+    }
+    // pgTex.background(255, 50);
 
     pgTex.translate(pgTex.width * 0.5, pgTex.height * 0.5);
     pgTex.pushMatrix();
@@ -90,26 +88,25 @@ var S118 = function (p) {
       pgTex.noStroke();
 
       let amount = p.map(Math.abs((y0 + y1) * 0.5), 0, 400, 2, 0);
-      for(let i = 0; i < 1; i++) {
-        let h = 0.05 * 3;
-        for(let n = 0; n < 2; n++) {
-          pgTex.beginShape();
-          for(let x = -0.5; x <= 0.5; x += 0.02) {
-            let sig = Math.cos(x * Math.PI * amount + t * 4 + xm * 0.01);
-            sig = Math.max(sig, 0);
-            let env = Math.cos(x * Math.PI);
-            let y = sig * env * h;
-            let c = Math.floor(p.map(x, -0.5, 0.5, 0, 1) + (xm + 600) * 0.01) % colors.length;
-            pgTex.fill(colors[c][0], colors[c][1], colors[c][2], alpha * 255);
-            if(x == -0.5) {
-              pgTex.vertex(-0.5, 0);
-            }
-            pgTex.vertex(x, y);
+      let h = 0.05 * 3;
+      for(let n = 0; n < 2; n++) {
+        pgTex.beginShape(p.TRIANGLE_STRIP);
+        for(let x = -0.5; x <= 0.5; x += 0.02) {
+          let sig = Math.cos(x * Math.PI * amount + t * 4 + xm * 0.01);
+          sig = Math.max(sig, 0);
+          let env = Math.cos(x * Math.PI) * alpha * alpha;
+          let y = sig * env * h * (n > 0 ? -1 : 1);
+          let c = Math.floor(p.map(x, -0.5, 0.5, 0, 1) + t + (xm + 600) * 0.01) % colors.length;
+          if(add) {
+            pgTex.fill(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
           }
-          pgTex.vertex(0.5, 0);
-          pgTex.endShape();
-          pgTex.scale(1, -1);
+          else {
+            pgTex.fill(255);
+          }
+          pgTex.vertex(x, y, 0);
+          pgTex.vertex(x, 0, Math.abs(y) * 30);
         }
+        pgTex.endShape();
       }
       pgTex.popMatrix();
     }
@@ -123,6 +120,17 @@ var S118 = function (p) {
         }
       }
     }
+    pgTex.popMatrix();
+    pgTex.endDraw();
+  }
+  this.drawPg = function(pg, t) {
+    if(p.frameCount % 60 == 0) {
+      for(let i = 0; i < points.length; i++) {
+        points[i].v = p5.Vector.random2D();
+        points[i].v.mult(p.random(0.5, 3));
+      }
+    }
+
     for(let i = 0; i < points.length; i++) {
       points[i].p.add(points[i].v);
       points[i].p.x = (points[i].p.x + 1200 * 1.5) % 1200 - 1200 * 0.5;
@@ -131,12 +139,14 @@ var S118 = function (p) {
       // points[i].p.y = (points[i].p.y + pg.width * 1.5) % pg.width - pg.width * 0.5;
     }
 
-    pgTex.popMatrix();
-    pgTex.endDraw();
+    this.drawPgTex(pgTex0, t, true);
+    this.drawPgTex(pgTex1, t, false);
 
     pg.beginDraw();
     pg.textureMode(p.NORMAL);
-    pg.background(255, 20);
+    pg.background(255);
+
+    pg.fill(255, 128);
 
     pg.translate(pg.width * 0.5, pg.height * 0.5);
     pg.pushMatrix();
@@ -149,7 +159,8 @@ var S118 = function (p) {
       }    
     }
     lastTime = t;
-    pg.image(pgTex, -pg.width * 0.5, -pg.height * 0.5);
+    pg.image(pgTex0, -pg.width * 0.5, -pg.height * 0.5);
+    pg.image(pgTex1, -pg.width * 0.5, -pg.height * 0.5);
     // pg.noStroke();
     // for(let i = 0; i < nGrid; i++) {
     //   pg.beginShape(p.TRIANGLE_STRIP);
