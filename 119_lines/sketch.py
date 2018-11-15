@@ -1,6 +1,7 @@
-d1 >> play("x{[--]-}o{[--][----]}", sus=[1, 2], lpf=[100, 10000, 10000])
+d1 >> play("x {[--]-} o {[--][---]} ", sus=[1], lpf=100000, whatever=P[:8])
 
-p1 >> pluck([0,2,4], dur=[[1,1/2], [1/2, 1],1/2], amp=[1,3/4,3/4])
+p1 >> pluck([0,2,4] + [0, 1], dur=[4,2,2], room=1, lpf=1000, bend=0.1)
+
 #d1 >> play("*", dur=4)
 p2 >> pads([0,1,2,3]) + [0,1,[0,(0,2)]]
 
@@ -27,4 +28,3 @@ b1 >> bass(a, dur=PBeat("x xxx "))
 b1 >> bass(a, dur=PDur(5,9))
 print(PBeat("x x xxx "))
 p1 >> pads(a + (0,2), dur=PDur(7,16))
-
