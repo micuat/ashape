@@ -30,7 +30,7 @@ EasingFunctions = {
 
 var p;
 
-var S120 = function (p) {
+var S121 = function (p) {
   let pg, pgTex0, pgTex1;
 
   pg = p.createGraphics(800, 800, p.P3D);
@@ -61,7 +61,29 @@ var S120 = function (p) {
       heights[i][j] = p.random(300);
     }
   }
+  this.blinks = [];
+  this.onOsc = function (type, t) {
+    // print(type)
+    if(type.freq > 0) {
+
+    }
+    else {
+      this.blinks.push({t: t + type.delay * 0.5 + 0.4, type: type, y: Math.floor(p.random(8)) * 100});
+      if(this.blinks.length > 20) this.blinks.shift();
+    }
+  }
   this.drawPgTex = function(pgTex, t, add) {
+    let self = this;
+    this.spike = 0;
+    for(let i in this.blinks) {
+      let we = this.blinks[i].type.whatever;
+      let b = p.map(t - this.blinks[i].t, 0.0, 0.5, 1, 0);
+      if(b > 1) b = 0;
+      if(b < 0) b = 0;
+
+      this.spike = Math.max(b, this.spike);
+    }
+
     pgTex.beginDraw();
     if(add) {
     }
@@ -88,7 +110,17 @@ var S120 = function (p) {
       pgTex.noStroke();
 
       let amount = p.map(Math.abs((y0 + y1) * 0.5), 0, 400, 2, 0);
-      let h = 0.05 * 3;
+      let spike = 0;
+      for(let i in self.blinks) {
+        let bl = self.blinks[i];
+        if(bl == undefined) continue;
+        let b = p.map(t - bl.t - (xm + 400) * 0.001, 0.0, 0.1, 1, 0);
+        if(b > 1) b = 0;
+        if(b < 0) b = 0;
+  
+        spike = Math.max(b, spike);
+      }
+      let h = 0.05 * 3 * spike;
       for(let n = 0; n < 2; n++) {
         pgTex.beginShape(p.TRIANGLE_STRIP);
         for(let x = -0.5; x <= 0.5; x += 0.02) {
@@ -124,7 +156,7 @@ var S120 = function (p) {
       for(let j = i; j < points.length; j++) {
         let alpha = 1 - points[i].p.dist(points[j].p) / 400.0;
         if(alpha > 0) {
-          if(p.frameCount % 120 < 60) {
+          if(p.frameCount % 121 < 60) {
             let v = points[i].p.copy();
             v.sub(points[j].p);
             v.mult(0.0002);
@@ -156,8 +188,8 @@ var S120 = function (p) {
       points[i].v.lerp(points[i].vTarget, 0.1);
 
       points[i].p.add(points[i].v);
-      points[i].p.x = (points[i].p.x + 1200 * 1.5) % 1200 - 1200 * 0.5;
-      points[i].p.y = (points[i].p.y + 1200 * 1.5) % 1200 - 1200 * 0.5;
+      points[i].p.x = (points[i].p.x + 1210 * 1.5) % 1210 - 1210 * 0.5;
+      points[i].p.y = (points[i].p.y + 1210 * 1.5) % 1210 - 1210 * 0.5;
       // points[i].p.x = (points[i].p.x + pg.width * 1.5) % pg.width - pg.width * 0.5;
       // points[i].p.y = (points[i].p.y + pg.width * 1.5) % pg.width - pg.width * 0.5;
     }
@@ -213,7 +245,7 @@ var S120 = function (p) {
 var s = function (p) {
   let startTime;
   
-  let s120 = new S120(p);
+  let s121 = new S121(p);
 
   p.setup = function () {
     name = p.folderName;
@@ -229,13 +261,27 @@ var s = function (p) {
   p.draw = function () {
     t = getTime();
 
-    s120.draw(t);
+    s121.draw(t);
   }
 
   p.oscEvent = function (m) {
     let path = m.addrPattern().split("/");
-    if (path.length >= 3 && path[1] == "sc3p5") {
-      s120.onOsc(path[2]);
+    // print(m)
+    if (path[1] == "g_new") {
+      // print(m.get(2).intValue())
+      // print(m.typetag(), m.get(1).intValue());
+    }
+    else if (path[1] == "s_new" && m.typetag().length > 10) {
+      let res = {};
+      let ress = "";
+      for(let i = 4; i < m.typetag().length - 1; i++) {
+        if(m.typetag()[i] == "s" && m.typetag()[i+1] == "f") {
+          res[m.get(i).stringValue()] = m.get(i+1).floatValue();
+          ress += m.get(i).stringValue() + " " + m.get(i+1).floatValue() + " ";
+        }
+      }
+      // print(ress)
+      s121.onOsc(res, getTime());
     }
   }
 
