@@ -38,11 +38,11 @@ var S120 = function (p) {
   pgTex1 = p.createGraphics(800, 800, p.P3D);
 
   let colors = [
-    [0xf5, 0x5d, 0x3e],
-    [0xff, 0xff, 0xff],
-    [0xF7, 0xCB, 0x15],
-    [0xff, 0xff, 0xff],
-    [0x76, 0xBE, 0xD0],
+    [0xd7, 0xc0, 0xd0],
+    [0xf7, 0xc7, 0xdb],
+    [0xf7, 0x9a, 0xd3],
+    [0xc8, 0x6f, 0xc9],
+    [0x8e, 0x51, 0x8d]
   ];
 
   let points = [];
@@ -50,7 +50,7 @@ var S120 = function (p) {
     let po = p.createVector(p.random(-400, 400), p.random(-400, 400));
     let v = p5.Vector.random2D();
     v.mult(p.random(0.5, 3));
-    points.push({p: po, v: v});
+    points.push({p: po, v: v, vTarget: p.createVector(0, 0)});
   }
   let lastTime = -100;
   let nGrid = 10;
@@ -66,7 +66,7 @@ var S120 = function (p) {
     if(add) {
     }
     else {
-      pgTex.directionalLight(255, 255, 255, 0, 1, -1);
+      pgTex.directionalLight(255, 255, 255, 0.5, 0.5, -1);
       pgTex.background(0, 0);
     }
     // pgTex.background(255, 50);
@@ -92,10 +92,10 @@ var S120 = function (p) {
       for(let n = 0; n < 2; n++) {
         pgTex.beginShape(p.TRIANGLE_STRIP);
         for(let x = -0.5; x <= 0.5; x += 0.02) {
-          let sig = Math.cos(x * Math.PI * amount + t * 4 + xm * 0.01);
+          let sig = Math.cos(x * Math.PI * amount + xm * 0.01);
           sig = Math.max(sig, 0);
           let env = Math.cos(x * Math.PI) * alpha * alpha;
-          let y = sig * env * h * (n > 0 ? -1 : 1);
+          let y = sig * env * h;
           let c = Math.floor(p.map(x, -0.5, 0.5, 0, 1) + t + (xm + 600) * 0.01) % colors.length;
           if(add) {
             pgTex.fill(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
@@ -103,15 +103,24 @@ var S120 = function (p) {
           else {
             pgTex.fill(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
           }
-          pgTex.vertex(x, y, 0);
-          pgTex.vertex(x, 0, Math.abs(y) * 30);
+          pgTex.normal(0, 1, 0);
+          pgTex.vertex(x, y * (n > 0 ? -1 : 1), 0);
+          pgTex.normal(0, 0, (n > 0 ? -1 : 1));
+          pgTex.vertex(x, 0, Math.abs(y) * 100);
         }
         pgTex.endShape();
       }
       pgTex.popMatrix();
     }
     for(let i = 0; i < points.length; i++) {
-      pgTex.point(points[i].p.x, points[i].p.y);
+      pgTex.pushMatrix();
+      pgTex.translate(points[i].p.x, points[i].p.y);
+      pgTex.sphere(10);
+      pgTex.popMatrix();
+    }
+    for(let i = 0; i < points.length; i++) {
+      // pgTex.point(points[i].p.x, points[i].p.y);
+
       for(let j = i; j < points.length; j++) {
         let alpha = 1 - points[i].p.dist(points[j].p) / 400.0;
         if(alpha > 0) {
@@ -119,12 +128,12 @@ var S120 = function (p) {
             let v = points[i].p.copy();
             v.sub(points[j].p);
             v.mult(0.0002);
-            points[j].v.add(v);
+            points[j].vTarget.add(v);
 
             v = points[j].p.copy();
             v.sub(points[i].p);
             v.mult(0.0002);
-            points[i].v.add(v);
+            points[i].vTarget.add(v);
           }
           alpha = Math.min(alpha * 2.0, 1.0);
           drawLine(points[i].p.x, points[i].p.y, points[j].p.x, points[j].p.y, alpha);
@@ -135,14 +144,17 @@ var S120 = function (p) {
     pgTex.endDraw();
   }
   this.drawPg = function(pg, t) {
-    if(p.frameCount % 60 == 0) {
+    if(p.frameCount % 240 == 0) {
       for(let i = 0; i < points.length; i++) {
-        points[i].v = p5.Vector.random2D();
-        points[i].v.mult(p.random(1.5, 5));
+        points[i].vTarget = p5.Vector.random2D();
+        points[i].vTarget.mult(p.random(1.5, 5));
       }
     }
 
     for(let i = 0; i < points.length; i++) {
+      points[i].vTarget.mult(0.99);
+      points[i].v.lerp(points[i].vTarget, 0.1);
+
       points[i].p.add(points[i].v);
       points[i].p.x = (points[i].p.x + 1200 * 1.5) % 1200 - 1200 * 0.5;
       points[i].p.y = (points[i].p.y + 1200 * 1.5) % 1200 - 1200 * 0.5;
