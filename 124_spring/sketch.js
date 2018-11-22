@@ -2,9 +2,9 @@
 var s = function (p) {
   let pgTex;
 
-  let res = 2;
-  let cols = 40 / res;
-  let rows = 40 / res;
+  let res = 3;
+  let cols = 60 / res;
+  let rows = 60 / res;
   
   let particles;
   let springs;
@@ -17,8 +17,13 @@ var s = function (p) {
 
   let colors = [{r: 0x61,g: 0x21,b: 0x0f},{r: 0xea,g: 0x2b,b: 0x1f},{r: 0xff,g: 0xee,b: 0xdb},{r: 0xed,g: 0xae,b: 0x49},{r: 0xf9,g: 0xdf,b: 0x74}];
   
+  let euler = p.createVector();
+  let windx = 0;
+  let windy = 1;
+  let windz = 0;
+
   p.setup = function () {
-    p.createCanvas(800, 800);
+    p.createCanvas(1200, 1200);
 
     particles = [];
     springs = [];
@@ -26,7 +31,7 @@ var s = function (p) {
 
     gravity = new Packages.toxi.geom.Vec3D(0, 0, -0.5);
     physics = new Packages.toxi.physics3d.VerletPhysics3D();
-    physics = physics;
+    physics.setDrag(0.2);
     gb = new Packages.toxi.physics3d.behaviors.GravityBehavior3D(gravity);
     physics.addBehavior(gb);
 
@@ -89,9 +94,9 @@ var s = function (p) {
     for (let i = 0; i < cols; i++) {
       pcolors[i] = [];
       for (let j = 0; j < rows; j++) {
-        let windx = (p.mouseX - p.width / 2) / p.width * 2.0;
-        let windy = (p.mouseY - p.height / 2) / p.height * 2.0;
-        let windz = 0;
+        // let windx = (p.mouseX - p.width / 2) / p.width * 2.0;
+        // let windy = (p.mouseY - p.height / 2) / p.height * 2.0;
+        // let windz = 0;
         let wind = new Packages.toxi.geom.Vec3D(windx, windy, windz);
         particles[i][j].get().addForce(wind);
         let vel = particles[i][j].get().getVelocity();
@@ -152,19 +157,23 @@ var s = function (p) {
     p.stroke(255, 128);
     // p.stroke(colors[0].r, colors[0].g, colors[0].b, 255);
     p.strokeWeight(2);
-    for (let j = 0; j < rows - 1; j++) {
-      for (let i = 0; i < cols - 1; i++) {
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
         let x1 = particles[i][j].get().x;
         let y1 = particles[i][j].get().y;
         let z1 = particles[i][j].get().z;
-        let x2 = particles[i][j + 1].get().x;
-        let y2 = particles[i][j + 1].get().y;
-        let z2 = particles[i][j + 1].get().z;
-        p.line(x1, y1, z1, x2, y2, z2);
-        x2 = particles[i + 1][j].get().x;
-        y2 = particles[i + 1][j].get().y;
-        z2 = particles[i + 1][j].get().z;
-        p.line(x1, y1, z1, x2, y2, z2);
+        if(j + 1 < rows) {
+          let x2 = particles[i][j + 1].get().x;
+          let y2 = particles[i][j + 1].get().y;
+          let z2 = particles[i][j + 1].get().z;
+          p.line(x1, y1, z1, x2, y2, z2);
+        }
+        if(i + 1 < cols) {
+          let x3 = particles[i + 1][j].get().x;
+          let y3 = particles[i + 1][j].get().y;
+          let z3 = particles[i + 1][j].get().z;
+          p.line(x1, y1, z1, x3, y3, z3);
+        }
       }
       p.endShape();
     }
@@ -201,7 +210,22 @@ var s = function (p) {
   }
 
   p.oscEvent = function(m) {
-    print(m);
+    // print(m)
+    if(m.addrPattern() == "/sensors/bno") {
+      // print(m.get(6).floatValue(), m.get(7).floatValue(), m.get(8).floatValue());
+      // euler.x = m.get(6).floatValue();
+      // euler.y = m.get(7).floatValue();
+      // euler.z = m.get(8).floatValue();
+      // windx = p.constrain(euler.y, -10, 10) * 0.1;
+      // windy = (p.constrain(euler.z, 80, 100) - 90) * 0.1;
+      // windz = 0;
+    }
+    else if(m.addrPattern() == "/sensors/wbb") {
+      // print(m.get(0).floatValue(), m.get(1).floatValue())
+      windx = m.get(0).floatValue() * 0.03;
+      windy = m.get(1).floatValue() * -0.03;
+      windz = 0;
+    }
   }
 };
 
