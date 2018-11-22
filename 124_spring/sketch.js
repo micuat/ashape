@@ -8,6 +8,7 @@ var s = function (p) {
   
   let particles;
   let springs;
+  let ptrace;
   
   let w = 15 * res;
   let zoff = 0;
@@ -20,10 +21,8 @@ var s = function (p) {
     p.createCanvas(800, 800);
 
     particles = [];
-    particles = particles;
-
     springs = [];
-    springs = springs;
+    ptrace = [];
 
     gravity = new Packages.toxi.geom.Vec3D(0, 0, -0.5);
     physics = new Packages.toxi.physics3d.VerletPhysics3D();
@@ -34,10 +33,12 @@ var s = function (p) {
     let x = -cols * w / 2 - 0;
     for (let i = 0; i < cols; i++) {
       particles[i] = [];
+      ptrace[i] = [];
       let y = -rows * w / 2;
       for (let j = 0; j < rows; j++) {
         let pt = new Particle({p: p, x: x, y: y, z: 0});
         particles[i][j] = pt;
+        ptrace[i][j] = [];
         physics.addParticle(pt.get());
         y = y + w;
       }
@@ -113,7 +114,9 @@ var s = function (p) {
       }
     }
 
-    p.background(colors[2].r, colors[2].g, colors[2].b);
+    // p.background(colors[2].r, colors[2].g, colors[2].b);
+    p.background(colors[2].r * 0.2, colors[2].g * 0.2, colors[2].b * 0.2);
+    // p.background(0, 0, 0);
 
     p.pointLight(255, 255, 255, 0, 0, 300);
     p.noStroke();
@@ -121,31 +124,34 @@ var s = function (p) {
     // p.textureMode(p.NORMAL);
     p.fill(colors[3].r, colors[3].g, colors[3].b);
     p.rotateX(Math.PI / 3.0);
-    for (let j = 0; j < rows - 1; j++) {
-      p.beginShape(p.TRIANGLE_STRIP);
-      // p.texture(pgTex);
-      for (let i = 0; i < cols; i++) {
-        let x1 = particles[i][j].get().x;
-        let y1 = particles[i][j].get().y;
-        let z1 = particles[i][j].get().z;
-        let x2 = particles[i][j + 1].get().x;
-        let y2 = particles[i][j + 1].get().y;
-        let z2 = particles[i][j + 1].get().z;
-        let ii = i + 1;
-        if(ii >= cols) ii = cols - 1;
-        let x3 = particles[ii][j].get().x;
-        let y3 = particles[ii][j].get().y;
-        let z3 = particles[ii][j].get().z;
-        // p.fill(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
-        p.normal(z3 - z1, z2 - z1, 1);
-        p.vertex(x1, y1, z1);
-        // p.fill(pcolors[i][j + 1].r, pcolors[i][j + 1].g, pcolors[i][j + 1].b);
-        p.normal(z3 - z1, z2 - z1, 1);
-        p.vertex(x2, y2, z2);
-      }
-      p.endShape();
-    }
-    p.stroke(colors[0].r, colors[0].g, colors[0].b, 128);
+    p.translate(0, 0, 100);
+    // for (let j = 0; j < rows - 1; j++) {
+    //   p.beginShape(p.TRIANGLE_STRIP);
+    //   // p.texture(pgTex);
+    //   for (let i = 0; i < cols; i++) {
+    //     let x1 = particles[i][j].get().x;
+    //     let y1 = particles[i][j].get().y;
+    //     let z1 = particles[i][j].get().z;
+    //     let x2 = particles[i][j + 1].get().x;
+    //     let y2 = particles[i][j + 1].get().y;
+    //     let z2 = particles[i][j + 1].get().z;
+    //     let ii = i + 1;
+    //     if(ii >= cols) ii = cols - 1;
+    //     let x3 = particles[ii][j].get().x;
+    //     let y3 = particles[ii][j].get().y;
+    //     let z3 = particles[ii][j].get().z;
+    //     // p.fill(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
+    //     p.normal(z3 - z1, z2 - z1, 1);
+    //     p.vertex(x1, y1, z1);
+    //     // p.fill(pcolors[i][j + 1].r, pcolors[i][j + 1].g, pcolors[i][j + 1].b);
+    //     p.normal(z3 - z1, z2 - z1, 1);
+    //     p.vertex(x2, y2, z2);
+    //   }
+    //   p.endShape();
+    // }
+    p.stroke(255, 128);
+    // p.stroke(colors[0].r, colors[0].g, colors[0].b, 255);
+    p.strokeWeight(2);
     for (let j = 0; j < rows - 1; j++) {
       for (let i = 0; i < cols - 1; i++) {
         let x1 = particles[i][j].get().x;
@@ -162,7 +168,32 @@ var s = function (p) {
       }
       p.endShape();
     }
-
+    p.strokeWeight(2);
+    p.colorMode(p.RGB, 255, 255, 255)
+    p.blendMode(p.ADD);
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        // p.stroke(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
+        let x = particles[i][j].get().x;
+        let y = particles[i][j].get().y;
+        let z = particles[i][j].get().z;
+        let rv = p5.Vector.random3D();
+        rv.mult(3 + 0.5 * particles[i][j].get().getVelocity().magnitude());
+        x += rv.x;
+        y += rv.y;
+        z += rv.z;
+        let ptr = ptrace[i][j];
+        ptr.push({x: x, y: y, z: z, r: pcolors[i][j].r, g: pcolors[i][j].g, b: pcolors[i][j].b});
+          for(let k = 0; k < ptr.length - 1; k++) {
+            p.stroke(ptr[k].r, ptr[k].g, ptr[k].b, 150);
+            // p.point(ptr[k].x, ptr[k].y, ptr[k].z);
+            p.line(ptr[k].x, ptr[k].y, ptr[k].z, ptr[k+1].x, ptr[k+1].y, ptr[k+1].z);
+        }
+        if(ptr.length > 20) {
+          ptr.shift();
+        }
+      }
+    }
     // p.stroke(255);
     // p.strokeWeight(4);
     // p.line(-cols * w / 2 - 100, -rows * w / 2, -cols * w / 2 - 100, p.height);
