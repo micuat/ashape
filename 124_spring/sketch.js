@@ -22,6 +22,42 @@ var s = function (p) {
   let windy = 1;
   let windz = 0;
 
+  let agents = [];
+  function Agent () {
+    let particle = p.random(p.random(particles)).get();
+    this.col = p.random(colors);
+    this.pos = p.createVector(particle.x, particle.y, particle.z);
+    this.poss = [];
+    this.vel = p5.Vector.random3D();
+    this.vel.mult(5);
+    this.life = 100;
+    this.draw = function () {
+      this.life--;
+      if(this.life <= 0) {
+      }
+      p.point(this.pos.x, this.pos.y, this.pos.z);
+      this.poss.push(this.pos.copy());
+      if(this.poss.length > 10) this.poss.shift();
+      let phi = (p.noise(this.pos.x, this.pos.y) * 2 - 1) * Math.PI * 2;
+      let theta = (p.noise(this.pos.z, this.pos.y) * 2 - 1) * Math.PI * 2;
+      this.vel.x += Math.sin(phi) * Math.cos(theta) * 10 + windx * 5;
+      this.vel.y += Math.sin(phi) * Math.sin(theta) * 10 + windy * 5;
+      this.vel.z += Math.cos(phi) * 10 + windz * 5;
+      this.pos.add(this.vel);
+      p.beginShape();
+      for(let i in this.poss) {
+        p.stroke(this.col.r, this.col.g, this.col.b, p.map(i, 0, this.poss.length, 0, 255));
+        p.vertex(this.poss[i].x, this.poss[i].y, this.poss[i].z);
+      }
+      p.endShape();
+    }
+  }
+
+  spawn = function () {
+    agents.push(new Agent());
+    if(agents.length > 100) agents.shift();
+  }
+
   p.setup = function () {
     p.createCanvas(1200, 1200);
 
@@ -86,6 +122,7 @@ var s = function (p) {
     p.background(0);
 
     p.translate(p.width / 2, p.height / 2);
+    p.rotateX(Math.PI / 3.0);
     physics.update();
 
     let w = pgTex.width / cols;
@@ -120,7 +157,7 @@ var s = function (p) {
     }
 
     // p.background(colors[2].r, colors[2].g, colors[2].b);
-    p.background(colors[2].r * 0.2, colors[2].g * 0.2, colors[2].b * 0.2);
+    // p.background(colors[2].r * 0.2, colors[2].g * 0.2, colors[2].b * 0.2);
     // p.background(0, 0, 0);
 
     p.pointLight(255, 255, 255, 0, 0, 300);
@@ -128,7 +165,6 @@ var s = function (p) {
     p.ambientLight(colors[1].r, colors[1].g, colors[1].b);
     // p.textureMode(p.NORMAL);
     p.fill(colors[3].r, colors[3].g, colors[3].b);
-    p.rotateX(Math.PI / 3.0);
     p.translate(0, 0, 100);
     // for (let j = 0; j < rows - 1; j++) {
     //   p.beginShape(p.TRIANGLE_STRIP);
@@ -180,28 +216,35 @@ var s = function (p) {
     p.strokeWeight(2);
     p.colorMode(p.RGB, 255, 255, 255)
     p.blendMode(p.ADD);
-    for (let j = 0; j < rows; j++) {
-      for (let i = 0; i < cols; i++) {
-        // p.stroke(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
-        let x = particles[i][j].get().x;
-        let y = particles[i][j].get().y;
-        let z = particles[i][j].get().z;
-        let rv = p5.Vector.random3D();
-        rv.mult(3 + 0.5 * particles[i][j].get().getVelocity().magnitude());
-        x += rv.x;
-        y += rv.y;
-        z += rv.z;
-        let ptr = ptrace[i][j];
-        ptr.push({x: x, y: y, z: z, r: pcolors[i][j].r, g: pcolors[i][j].g, b: pcolors[i][j].b});
-          for(let k = 0; k < ptr.length - 1; k++) {
-            p.stroke(ptr[k].r, ptr[k].g, ptr[k].b, 150);
-            // p.point(ptr[k].x, ptr[k].y, ptr[k].z);
-            p.line(ptr[k].x, ptr[k].y, ptr[k].z, ptr[k+1].x, ptr[k+1].y, ptr[k+1].z);
-        }
-        if(ptr.length > 20) {
-          ptr.shift();
-        }
-      }
+    // for (let j = 0; j < rows; j++) {
+    //   for (let i = 0; i < cols; i++) {
+    //     // p.stroke(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
+    //     let x = particles[i][j].get().x;
+    //     let y = particles[i][j].get().y;
+    //     let z = particles[i][j].get().z;
+    //     let rv = p5.Vector.random3D();
+    //     rv.mult(3 + 0.5 * particles[i][j].get().getVelocity().magnitude());
+    //     x += rv.x;
+    //     y += rv.y;
+    //     z += rv.z;
+    //     let ptr = ptrace[i][j];
+    //     ptr.push({x: x, y: y, z: z, r: pcolors[i][j].r, g: pcolors[i][j].g, b: pcolors[i][j].b});
+    //       for(let k = 0; k < ptr.length - 1; k++) {
+    //         p.stroke(ptr[k].r, ptr[k].g, ptr[k].b, 150);
+    //         // p.point(ptr[k].x, ptr[k].y, ptr[k].z);
+    //         p.line(ptr[k].x, ptr[k].y, ptr[k].z, ptr[k+1].x, ptr[k+1].y, ptr[k+1].z);
+    //     }
+    //     if(ptr.length > 20) {
+    //       ptr.shift();
+    //     }
+    //   }
+    // }
+
+    p.stroke(255);
+    p.strokeWeight(2);
+    p.noFill();
+    for(let i in agents) {
+      agents[i].draw();
     }
     // p.stroke(255);
     // p.strokeWeight(4);
@@ -209,22 +252,31 @@ var s = function (p) {
 
   }
 
+  let remoteLocation = new Packages.netP5.NetAddress("127.0.0.1", 57120);
   p.oscEvent = function(m) {
     // print(m)
     if(m.addrPattern() == "/sensors/bno") {
+      let msg = new Packages.oscP5.OscMessage("/sensors/bno");
+      for(let i = 0; i < 9; i++) {
+        msg.add(m.get(i).floatValue());
+      }
+      p.oscP5.send(msg, remoteLocation);
       // print(m.get(6).floatValue(), m.get(7).floatValue(), m.get(8).floatValue());
       // euler.x = m.get(6).floatValue();
       // euler.y = m.get(7).floatValue();
       // euler.z = m.get(8).floatValue();
-      // windx = p.constrain(euler.y, -10, 10) * 0.1;
-      // windy = (p.constrain(euler.z, 80, 100) - 90) * 0.1;
-      // windz = 0;
+      windx = p.constrain(m.get(7).floatValue(), -10, 10) * 0.1;
+      windy = (p.constrain(m.get(8).floatValue(), 80, 100) - 90) * 0.1;
+      windz = 0;
     }
     else if(m.addrPattern() == "/sensors/wbb") {
       // print(m.get(0).floatValue(), m.get(1).floatValue())
-      windx = m.get(0).floatValue() * 0.03;
-      windy = m.get(1).floatValue() * -0.03;
-      windz = 0;
+      // windx = m.get(0).floatValue() * 0.03;
+      // windy = m.get(1).floatValue() * -0.03;
+      // windz = 0;
+    }
+    else if(m.addrPattern() == "/sc3p5/dust") {
+      spawn();
     }
   }
 };
