@@ -37,11 +37,11 @@ var S122 = function (p) {
   pgTex1 = p.createGraphics(800, 800, p.P3D);
 
   let colors = [
-    [0xd7, 0xc0, 0xd0],
-    [0xf7, 0xc7, 0xdb],
-    [0xf7, 0x9a, 0xd3],
-    [0xc8, 0x6f, 0xc9],
-    [0x8e, 0x51, 0x8d]
+    [0xbd, 0xe4, 0xa8],
+    [0x9c, 0xc6, 0x9b],
+    [0xff, 0xee, 0xdb],
+    [0x79, 0xb4, 0xa9],
+    [0x67, 0x6f, 0x54]
   ];
 
   let points = [];
@@ -50,7 +50,7 @@ var S122 = function (p) {
       let po = p.createVector((j-2)*150, (i-2)*150);
       let v = p5.Vector.random2D();
       v.mult(p.random(0.5, 3));
-      points.push({p: po, v: v, vTarget: p.createVector(0, 0)});
+      points.push({p: po, v: v, vTarget: p.createVector(0, 0), index: {j: j, i: i}});
     }
   }
   let lastTime = -100;
@@ -86,13 +86,7 @@ var S122 = function (p) {
     }
 
     pgTex.beginDraw();
-    if(add) {
-    }
-    else {
-      pgTex.directionalLight(255, 255, 255, 0.5, 0.5, -1);
-      pgTex.background(0, 0);
-    }
-    // pgTex.background(255, 50);
+    pgTex.background(255);
 
     pgTex.translate(pgTex.width * 0.5, pgTex.height * 0.5);
     pgTex.pushMatrix();
@@ -123,41 +117,37 @@ var S122 = function (p) {
       }
       let h = 0.05 * 3 * spike;
       for(let n = 0; n < 2; n++) {
-        pgTex.beginShape(p.TRIANGLE_STRIP);
+        pgTex.beginShape();
         for(let x = -0.5; x <= 0.5; x += 0.02) {
-          let sig = Math.cos(x * Math.PI * amount + xm * 0.01);
+          let sig = Math.cos(x * Math.PI * amount * 4 + t + xm * 0.01);
           sig = Math.max(sig, 0);
           let env = Math.cos(x * Math.PI) * alpha * alpha;
           let y = sig * env * h;
           let c = Math.floor(p.map(x, -0.5, 0.5, 0, 1) + t + (xm + 600) * 0.01) % colors.length;
           if(add) {
-            pgTex.fill(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
+            pgTex.stroke(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
           }
           else {
-            pgTex.fill(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
+            pgTex.stroke(colors[c][0], colors[c][1], colors[c][2], 1 * 255);
           }
-          pgTex.normal(0, 1, 0);
           pgTex.vertex(x, y * (n > 0 ? -1 : 1), 0);
-          pgTex.normal(0, 0, (n > 0 ? -1 : 1));
-          pgTex.vertex(x, 0, Math.abs(y) * 100);
         }
         pgTex.endShape();
       }
       pgTex.popMatrix();
     }
+    pgTex.strokeWeight(10);
+    pgTex.stroke(0);
     for(let i = 0; i < points.length; i++) {
-      pgTex.pushMatrix();
-      pgTex.translate(points[i].p.x, points[i].p.y);
-      pgTex.sphere(10);
-      pgTex.popMatrix();
+      pgTex.point(points[i].p.x, points[i].p.y)
     }
+    pgTex.strokeWeight(3);
+    pgTex.noFill();
     for(let i = 0; i < points.length; i++) {
-      // pgTex.point(points[i].p.x, points[i].p.y);
-
       for(let j = i; j < points.length; j++) {
-        let alpha = 1 - points[i].p.dist(points[j].p) / 400.0;
+        let alpha = 1 - points[i].p.dist(points[j].p) / 300.0;
         if(alpha > 0) {
-          if(p.frameCount % 122 < 60) {
+          if(p.frameCount % 240 > 120) {
             let v = points[i].p.copy();
             v.sub(points[j].p);
             v.mult(0.0002);
@@ -177,10 +167,11 @@ var S122 = function (p) {
     pgTex.endDraw();
   }
   this.drawPg = function(pg, t) {
-    if(p.frameCount % 240 == 0) {
+    if(p.frameCount % 480 < 60) {
       for(let i = 0; i < points.length; i++) {
-        points[i].vTarget = p5.Vector.random2D();
-        points[i].vTarget.mult(p.random(1.5, 5));
+        points[i].p.lerp(p.createVector((points[i].index.j - 2) * 180, (points[i].index.i - 2) * 180), 0.12);
+        // points[i].vTarget = p5.Vector.random2D();
+        // points[i].vTarget.mult(p.random(1.5, 5));
       }
     }
 
@@ -191,8 +182,6 @@ var S122 = function (p) {
       points[i].p.add(points[i].v);
       points[i].p.x = (points[i].p.x + 1200 * 1.5) % 1200 - 1200 * 0.5;
       points[i].p.y = (points[i].p.y + 1200 * 1.5) % 1200 - 1200 * 0.5;
-      // points[i].p.x = (points[i].p.x + pg.width * 1.5) % pg.width - pg.width * 0.5;
-      // points[i].p.y = (points[i].p.y + pg.width * 1.5) % pg.width - pg.width * 0.5;
     }
 
     this.drawPgTex(pgTex1, t, false);
@@ -206,31 +195,8 @@ var S122 = function (p) {
     pg.translate(pg.width * 0.5, pg.height * 0.5);
     pg.pushMatrix();
 
-    if(Math.floor(t / 4) > Math.floor(lastTime / 4)) {
-      for(let i = 0; i <= nGrid; i++) {
-        for(let j = 0; j <= nGrid; j++) {
-          heights[i][j] = p.random(800);
-        }
-      }    
-    }
     lastTime = t;
     pg.image(pgTex1, -pg.width * 0.5, -pg.height * 0.5);
-    // pg.noStroke();
-    // for(let i = 0; i < nGrid; i++) {
-    //   pg.beginShape(p.TRIANGLE_STRIP);
-    //   pg.texture(pgTex);
-    //   for(let j = 0; j <= nGrid; j++) {
-    //     let x = p.map(j, 0, nGrid, -pg.width / 2, pg.width / 2);
-    //     let y0 = p.map(i, 0, nGrid, -pg.height / 2, pg.height / 2);
-    //     let y1 = p.map(i + 1, 0, nGrid, -pg.height / 2, pg.height / 2);
-    //     let ease = EasingFunctions.easeInQuart(Math.sin(((t / 4) % 1) * Math.PI));
-    //     let h0 = heights[i][j] * ease;
-    //     let h1 = heights[i + 1][j] * ease;
-    //     pg.vertex(x, y0, h0, j / nGrid, i / nGrid);
-    //     pg.vertex(x, y1, h1, j / nGrid, (i + 1) / nGrid);
-    //   }
-    //   pg.endShape();
-    // }
 
     pg.popMatrix();
     pg.endDraw();

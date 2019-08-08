@@ -17,8 +17,9 @@ SynthDef(\sig2, { |out, freq = 440, dfreq = 1, mul = 0.22|
 	// SendTrig.kr(Impulse.kr(0.1), 1, 1);
 	// i = SinOsc.ar(0.1, mul: 0.25, add: 0.5);
 	i = dfreq * (dfreq < 1);
+	i = (1 - i) * (dfreq < 1);
 	//s = Ringz.ar(SinOsc.ar(100, mul: i), 50);
-	s = FreeVerb.ar(SinOsc.ar(180, mul: i));
+	s = FreeVerb.ar(SinOsc.ar(280, mul: i * mul));
 	// s = FreeVerb.ar(SinOsc.ar(150, mul: i) + PinkNoise.ar(mul:0.1*Clip.ar(0.5-i, 0, 1)));
 	Out.ar(out, s ! 2)
 }).add;
@@ -26,19 +27,19 @@ SynthDef(\sig2, { |out, freq = 440, dfreq = 1, mul = 0.22|
 
 (
 ~sig = Synth(\sig, [\freq, 500, \dfreq, 0]);
-~sig2 = Synth(\sig2, [\freq, 500, \dfreq, 0.1, \mul, 0.5]);
+~sig2 = Synth(\sig2, [\freq, 500, \dfreq, 0.1, \mul, 0]);
 )
 
 (
 f = { |msg, time, addr|
     if(msg[0] == '/sensors/bno') {
 		// msg[9].postln;
-		~sig.set(\dfreq, abs(msg[9] - 90));
+		~sig.set(\dfreq, abs(msg[9] - 90) * 0.3);
 		~sig2.set(\dfreq, abs(msg[9] - 90) * 0.1);
 		// (abs(msg[9] - 90) * 0.03).postln;
     }
 };
-thisProcess.addOSCRecvFunc(f);
+thisProcess.addOSCRecvFunc(f)
 );
 
 // stop posting.

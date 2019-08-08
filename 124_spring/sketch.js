@@ -140,7 +140,7 @@ var s = function (p) {
         // let vx = vel.x * 100;
         // let vy = vel.y * 100;
         // let vz = vel.z * 100;
-        let vamp = p.constrain(vel.magnitude(), 0.5, 1);
+        let vamp = p.constrain(vel.magnitude(), 0, 1);
         let vrx = p.lerp(colors[1].r, colors[3].r, 0.5 + 0.5 * p.constrain(vel.x, -1, 1));
         let vgx = p.lerp(colors[1].g, colors[3].g, 0.5 + 0.5 * p.constrain(vel.x, -1, 1));
         let vbx = p.lerp(colors[1].b, colors[3].b, 0.5 + 0.5 * p.constrain(vel.x, -1, 1));
@@ -160,36 +160,35 @@ var s = function (p) {
     // p.background(colors[2].r * 0.2, colors[2].g * 0.2, colors[2].b * 0.2);
     // p.background(0, 0, 0);
 
-    p.pointLight(255, 255, 255, 0, 0, 300);
+    // p.pointLight(255, 255, 255, 0, 0, 300);
     p.noStroke();
-    p.ambientLight(colors[1].r, colors[1].g, colors[1].b);
+    // p.ambientLight(colors[1].r, colors[1].g, colors[1].b);
     // p.textureMode(p.NORMAL);
     p.fill(colors[3].r, colors[3].g, colors[3].b);
-    p.translate(0, 0, 100);
-    // for (let j = 0; j < rows - 1; j++) {
-    //   p.beginShape(p.TRIANGLE_STRIP);
-    //   // p.texture(pgTex);
-    //   for (let i = 0; i < cols; i++) {
-    //     let x1 = particles[i][j].get().x;
-    //     let y1 = particles[i][j].get().y;
-    //     let z1 = particles[i][j].get().z;
-    //     let x2 = particles[i][j + 1].get().x;
-    //     let y2 = particles[i][j + 1].get().y;
-    //     let z2 = particles[i][j + 1].get().z;
-    //     let ii = i + 1;
-    //     if(ii >= cols) ii = cols - 1;
-    //     let x3 = particles[ii][j].get().x;
-    //     let y3 = particles[ii][j].get().y;
-    //     let z3 = particles[ii][j].get().z;
-    //     // p.fill(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
-    //     p.normal(z3 - z1, z2 - z1, 1);
-    //     p.vertex(x1, y1, z1);
-    //     // p.fill(pcolors[i][j + 1].r, pcolors[i][j + 1].g, pcolors[i][j + 1].b);
-    //     p.normal(z3 - z1, z2 - z1, 1);
-    //     p.vertex(x2, y2, z2);
-    //   }
-    //   p.endShape();
-    // }
+    for (let j = 0; j < rows - 1; j++) {
+      p.beginShape(p.TRIANGLE_STRIP);
+      // p.texture(pgTex);
+      for (let i = 0; i < cols; i++) {
+        let x1 = particles[i][j].get().x;
+        let y1 = particles[i][j].get().y;
+        let z1 = particles[i][j].get().z;
+        let x2 = particles[i][j + 1].get().x;
+        let y2 = particles[i][j + 1].get().y;
+        let z2 = particles[i][j + 1].get().z;
+        let ii = i + 1;
+        if(ii >= cols) ii = cols - 1;
+        let x3 = particles[ii][j].get().x;
+        let y3 = particles[ii][j].get().y;
+        let z3 = particles[ii][j].get().z;
+        p.fill(pcolors[i][j].r, pcolors[i][j].g, pcolors[i][j].b);
+        // p.normal(z3 - z1, z2 - z1, 1);
+        p.vertex(x1, y1, z1);
+        p.fill(pcolors[i][j + 1].r, pcolors[i][j + 1].g, pcolors[i][j + 1].b);
+        // p.normal(z3 - z1, z2 - z1, 1);
+        p.vertex(x2, y2, z2);
+      }
+      p.endShape();
+    }
     p.stroke(255, 128);
     // p.stroke(colors[0].r, colors[0].g, colors[0].b, 255);
     p.strokeWeight(2);
@@ -265,7 +264,7 @@ var s = function (p) {
       // euler.x = m.get(6).floatValue();
       // euler.y = m.get(7).floatValue();
       // euler.z = m.get(8).floatValue();
-      windx = p.constrain(m.get(7).floatValue(), -10, 10) * 0.1;
+      windx = p.constrain(m.get(7).floatValue(), -10, 10) * -0.1;
       windy = (p.constrain(m.get(8).floatValue(), 80, 100) - 90) * 0.1;
       windz = 0;
     }

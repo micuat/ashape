@@ -45,6 +45,7 @@ var S119 = function (p) {
     pg.noStroke();
     pg.rectMode(p.CENTER);
     for(let i in this.blinks) {
+      pg.pushMatrix();
       let we = this.blinks[i].type.whatever;
       if(this.blinks[i].type.freq > 10) continue;
       let b = p.map(t - this.blinks[i].t, 0.0, 0.5, 1, 0);
@@ -52,8 +53,9 @@ var S119 = function (p) {
       if(b < 0) b = 0;
       // pg.fill(this.blinks[i].type.whatever * 32, 255, 255, 255 - 255 * p.constrain(b, 0, 1));
       pg.fill(colors[we % 5][0], colors[we % 5][1], colors[we % 5][2]);
-      pg.rotate(b * Math.PI);
+      pg.rotate(b * Math.PI * 1 * (we > 1 ? 1 : -1));
       pg.rect(0, 0, 300 * b, 300 * b);
+      pg.popMatrix();
     }
 
     pg.fill(255, 128);

@@ -58,13 +58,16 @@ public PApplet that = this;
 
 public Icosahedron ico = new Icosahedron(75);
 
-public String folderName = "094_waves";
-// public String folderName = "snue_slides";
+public String folderName = "snue_slides";
 
 boolean libInited = false;
 
 float frameRate() {
   return frameRate;
+}
+
+public void addInt(OscMessage m, int f) {
+  m.add(f);
 }
 
 public void addFloat(OscMessage m, float f) {
@@ -73,8 +76,7 @@ public void addFloat(OscMessage m, float f) {
 
 void setup() {
   noSmooth();
-  hint(DISABLE_TEXTURE_MIPMAPS);
-
+  //hint(DISABLE_TEXTURE_MIPMAPS);
   //smooth();
   //hint(ENABLE_TEXTURE_MIPMAPS);
 
@@ -95,6 +97,8 @@ void setup() {
   libPaths.add(sketchPath("libs/synaptic.min.js"));
   libPaths.add(sketchPath("libs/regression.min.js"));
 
+  //scriptPaths.add(sketchPath(folderName + "/spring.js"));
+  //scriptPaths.add(sketchPath(folderName + "/particle.js"));
   scriptPaths.add(sketchPath(folderName + "/sketch.js"));
 
   initNashorn();
